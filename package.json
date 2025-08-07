@@ -1,40 +1,45 @@
 {
-  "name": "prontuario-medico-lorsgordors",
-  "version": "1.0.0",
-  "description": "Sistema de Prontuário Médico Online - Lorsgordors 2025-08-07 17:40:00",
+  "name": "sistema-prontuario-medico",
+  "version": "2.0.0",
+  "description": "Sistema de Prontuário Médico Local com funcionalidades avançadas de segurança e controle de acesso por usuário",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
-    "build": "echo 'Build concluído para deploy'",
-    "test": "echo 'Sistema testado e funcionando'"
+    "dev": "nodemon server.js",
+    "test": "echo \"Nenhum teste especificado\" && exit 0",
+    "migration": "node migrar-dados.js"
   },
-  "engines": {
-    "node": ">=16.0.0"
-  },
+  "keywords": [
+    "prontuario",
+    "medico",
+    "saude",
+    "nodejs",
+    "local",
+    "crm",
+    "coren",
+    "cro",
+    "crefito",
+    "seguranca",
+    "controle-acesso"
+  ],
+  "author": "Sistema de Prontuário Local",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "express-session": "^1.17.3"
   },
-  "devDependencies": {},
-  "keywords": [
-    "prontuario",
-    "medico",
-    "lorsgordors",
-    "saude",
-    "online",
-    "sistema",
-    "hospital",
-    "clinica"
-  ],
-  "author": "lorsgordors",
-  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lorsgordors/prontuario-medico.git"
+    "url": "https://github.com/lorsgordors/sistema-prontuario-medico.git"
   },
   "bugs": {
-    "url": "https://github.com/lorsgordors/prontuario-medico/issues"
+    "url": "https://github.com/lorsgordors/sistema-prontuario-medico/issues"
   },
-  "homepage": "https://github.com/lorsgordors/prontuario-medico#readme"
+  "homepage": "https://github.com/lorsgordors/sistema-prontuario-medico#readme"
 }
