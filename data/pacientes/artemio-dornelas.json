@@ -1,0 +1,28 @@
+{
+  "id": 1754578153457,
+  "nomeCompleto": "Artemio Dornelas",
+  "cpf": "039.742.996-70",
+  "dataNascimento": "1977-08-12",
+  "telefone": "(32) 99971-6327",
+  "email": "artermio@gmial.com",
+  "endereco": "rua b num 15 chacara minas gerais",
+  "atendimentos": [
+    {
+      "id": 1754578228915,
+      "data": "2025-08-07",
+      "horario": "11:49",
+      "observacoes": "plano de tratamento (onicomicose, onicortese)",
+      "valor": "570",
+      "profissionalNome": "MARYA DORNELAS",
+      "profissionalRegistro": "CBO: 322110",
+      "profissionalEstado": "",
+      "profissionalId": 3,
+      "criadoEm": "2025-08-07T14:50:28.915Z"
+    }
+  ],
+  "criadoEm": "2025-08-07T14:49:13.457Z",
+  "criadoPor": "MARYA DORNELAS",
+  "criadoPorId": 3,
+  "criadoPorRegistro": "CBO: 322110",
+  "ultimaAtualizacao": "2025-08-07T14:50:28.915Z"
+}

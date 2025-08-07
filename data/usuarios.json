@@ -1,0 +1,41 @@
+[
+  {
+    "id": 1,
+    "login": "admin",
+    "senha": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "nomeCompleto": "Administrador do Sistema",
+    "tipoRegistro": "CPF",
+    "numeroRegistro": "000.000.000-00",
+    "estadoRegistro": null,
+    "tipo": "Administrador",
+    "criadoEm": "2025-08-07T15:14:32.730Z",
+    "criadoPor": "Sistema",
+    "versaoSistema": "2025-08-07 16:35:59"
+  },
+  {
+    "id": 2,
+    "login": "Loren",
+    "senha": "d6644c3496253af832a3c05061f211f2dc7dd6f323f54d473db9569e64c1d098",
+    "nomeCompleto": "Loren",
+    "tipoRegistro": "CPF",
+    "numeroRegistro": "14501013648",
+    "estadoRegistro": "",
+    "tipo": "Profissional",
+    "criadoEm": "2025-08-07T15:14:32.732Z",
+    "criadoPor": "Sistema",
+    "versaoSistema": "2025-08-07 16:35:59"
+  },
+  {
+    "id": 3,
+    "login": "MARYA DORNELAS",
+    "senha": "5e0041ffb2ea608962fd639ab01c60f12917d19120ebcb6e937ffd9996cae563",
+    "nomeCompleto": "MARYA DORNELAS",
+    "tipoRegistro": "CBO",
+    "numeroRegistro": "322110",
+    "estadoRegistro": "",
+    "tipo": "Profissional",
+    "criadoEm": "2025-08-07T15:14:32.732Z",
+    "criadoPor": "Sistema",
+    "versaoSistema": "2025-08-07 16:35:59"
+  }
+]

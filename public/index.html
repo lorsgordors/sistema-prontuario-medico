@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Prontuário Médico</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🏥 Sistema de Prontuário Médico</h1>
+                <p>Acesso Local Seguro</p>
+            </div>
+            
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="login">Usuário:</label>
+                    <input type="text" id="login" name="login" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Entrar</button>
+                
+                <div id="loginError" class="error-message"></div>
+            </form>
+            
+            <div class="login-actions">
+                <button type="button" id="registrarUsuarioBtn" class="btn btn-secondary">
+                    👤 Registrar Usuário
+                </button>
+            </div>
+            
+            <div class="login-info">
+                <p><small>Usuário padrão: <strong>admin</strong> | Senha: <strong>admin123</strong></small></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface Principal -->
+    <div id="mainScreen" class="screen hidden">
+        <!-- Header -->
+        <header class="main-header">
+            <div class="header-content">
+                <h1>🏥 Prontuário Médico</h1>
+                <div class="user-info">
+                    <span id="userWelcome">Bem-vindo, ...</span>
+                    <button id="logoutBtn" class="btn btn-secondary">Sair</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navegação -->
+        <nav class="main-nav">
+            <button class="nav-btn active" data-tab="meuPerfil">👤 Meu Perfil</button>
+            <button class="nav-btn" data-tab="pacientes">👥 Pacientes</button>
+            <button class="nav-btn" data-tab="cadastroPaciente">➕ Novo Paciente</button>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Aba Meu Perfil -->
+            <section id="meuPerfil" class="tab-content active">
+                <div class="content-header">
+                    <h2>👤 Meu Perfil</h2>
+                </div>
+                
+                <!-- Seção de Estatísticas -->
+                <div class="profile-section">
+                    <div class="stats-cards" id="statsCards">
+                        <!-- Estatísticas serão carregadas aqui -->
+                    </div>
+                    
+                    <div class="profile-card">
+                        <h3>Informações Pessoais</h3>
+                        <div class="profile-info">
+                            <div class="info-item">
+                                <label>Nome de Login:</label>
+                                <span id="profileLogin">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Nome Completo:</label>
+                                <span id="profileNome">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Tipo de Registro:</label>
+                                <span id="profileTipoRegistro">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Número do Registro:</label>
+                                <span id="profileNumeroRegistro">-</span>
+                            </div>
+                            <div class="info-item" id="profileEstadoItem" style="display: none;">
+                                <label>Estado:</label>
+                                <span id="profileEstado">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Tipo de Usuário:</label>
+                                <span id="profileTipo">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-card">
+                        <h3>🔒 Alterar Senha</h3>
+                        <form id="alterarSenhaForm" class="change-password-form">
+                            <div class="form-group">
+                                <label for="senhaAtual">Senha Atual *</label>
+                                <input type="password" id="senhaAtual" name="senhaAtual" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="novaSenha">Nova Senha *</label>
+                                <input type="password" id="novaSenha" name="novaSenha" required>
+                                <div id="forcaSenha" class="password-strength"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="confirmarSenha">Confirmar Nova Senha *</label>
+                                <input type="password" id="confirmarSenha" name="confirmarSenha" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">🔒 Alterar Senha</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aba Pacientes -->
+            <section id="pacientes" class="tab-content">
+                <div class="content-header">
+                    <h2 id="tituloListaPacientes">👥 Meus Pacientes</h2>
+                    <div class="header-actions">
+                        <span id="infoPacientes" class="info-badge">Carregando...</span>
+                        <button id="refreshPacientes" class="btn btn-secondary">🔄 Atualizar</button>
+                    </div>
+                </div>
+                
+                <div class="search-container">
+                    <input type="text" id="searchPacientes" placeholder="Buscar paciente...">
+                </div>
+                
+                <div id="pacientesList" class="pacientes-list">
+                    <!-- Lista de pacientes será carregada aqui -->
+                </div>
+            </section>
+
+            <!-- Aba Cadastro de Paciente -->
+            <section id="cadastroPaciente" class="tab-content">
+                <div class="content-header">
+                    <h2>➕ Cadastrar Novo Paciente</h2>
+                </div>
+                
+                <form id="pacienteForm" class="form-container">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pacienteNome">Nome Completo *</label>
+                            <input type="text" id="pacienteNome" name="nomeCompleto" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pacienteCpf">CPF *</label>
+                            <input type="text" id="pacienteCpf" name="cpf" required maxlength="14">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pacienteDataNasc">Data de Nascimento *</label>
+                            <input type="date" id="pacienteDataNasc" name="dataNascimento" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pacienteTelefone">Telefone</label>
+                            <input type="tel" id="pacienteTelefone" name="telefone">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pacienteEmail">E-mail</label>
+                        <input type="email" id="pacienteEmail" name="email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pacienteEndereco">Endereço Completo</label>
+                        <textarea id="pacienteEndereco" name="endereco" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Cadastrar Paciente</button>
+                        <button type="reset" class="btn btn-secondary">🔄 Limpar</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Aba Detalhes do Paciente -->
+            <section id="detalhePaciente" class="tab-content">
+                <div class="content-header">
+                    <h2 id="detalhePacienteNome">📋 Paciente</h2>
+                    <div class="detail-actions">
+                        <button id="excluirPacienteBtn" class="btn btn-danger">🗑️ Excluir Paciente</button>
+                        <button id="voltarPacientes" class="btn btn-secondary">← Voltar</button>
+                    </div>
+                </div>
+                
+                <div class="paciente-details">
+                    <div class="paciente-info-card">
+                        <h3>Informações do Paciente</h3>
+                        <div id="pacienteInfoContent">
+                            <!-- Informações do paciente -->
+                        </div>
+                    </div>
+                    
+                    <div class="atendimentos-section">
+                        <div class="section-header">
+                            <h3>📅 Atendimentos</h3>
+                            <button id="novoAtendimentoBtn" class="btn btn-primary">➕ Novo Atendimento</button>
+                        </div>
+                        
+                        <!-- Formulário de Novo Atendimento -->
+                        <form id="atendimentoForm" class="atendimento-form hidden">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="atendimentoData">Data *</label>
+                                    <input type="date" id="atendimentoData" name="data" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="atendimentoHora">Horário *</label>
+                                    <input type="time" id="atendimentoHora" name="horario" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="atendimentoValor">Valor (R$)</label>
+                                    <input type="number" id="atendimentoValor" name="valor" step="0.01" min="0">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="atendimentoObs">Observações *</label>
+                                <textarea id="atendimentoObs" name="observacoes" rows="4" required></textarea>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">💾 Salvar Atendimento</button>
+                                <button type="button" id="cancelarAtendimento" class="btn btn-secondary">Cancelar</button>
+                            </div>
+                        </form>
+                        
+                        <div id="atendimentosList" class="atendimentos-list">
+                            <!-- Lista de atendimentos -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Registrar Usuário -->
+    <div id="registrarUsuarioModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 Registrar Novo Usuário</h3>
+                <button type="button" class="modal-close" id="fecharRegistroModal">&times;</button>
+            </div>
+            
+            <form id="registrarUsuarioForm">
+                <div class="form-group">
+                    <label for="senhaAdmin">Senha do Administrador *</label>
+                    <input type="password" id="senhaAdmin" name="senhaAdmin" required 
+                           placeholder="Digite a senha do administrador">
+                </div>
+                
+                <hr class="form-divider">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="novoLogin">Nome de Usuário *</label>
+                        <input type="text" id="novoLogin" name="login" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="novoNomeCompleto">Nome Completo *</label>
+                        <input type="text" id="novoNomeCompleto" name="nomeCompleto" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="novaSenhaUsuario">Senha *</label>
+                    <input type="password" id="novaSenhaUsuario" name="senha" required>
+                    <div id="forcaSenhaRegistro" class="password-strength"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="tipoRegistroNovo">Tipo de Registro *</label>
+                    <select id="tipoRegistroNovo" name="tipoRegistro" required>
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="numeroRegistroNovo">Número do Registro *</label>
+                        <input type="text" id="numeroRegistroNovo" name="numeroRegistro" required>
+                    </div>
+                    
+                    <div class="form-group" id="estadoRegistroGroup" style="display: none;">
+                        <label for="estadoRegistroNovo">Estado *</label>
+                        <select id="estadoRegistroNovo" name="estadoRegistro">
+                            <option value="">Selecione...</option>
+                            <option value="AC">Acre</option>
+                            <option value="AL">Alagoas</option>
+                            <option value="AP">Amapá</option>
+                            <option value="AM">Amazonas</option>
+                            <option value="BA">Bahia</option>
+                            <option value="CE">Ceará</option>
+                            <option value="DF">Distrito Federal</option>
+                            <option value="ES">Espírito Santo</option>
+                            <option value="GO">Goiás</option>
+                            <option value="MA">Maranhão</option>
+                            <option value="MT">Mato Grosso</option>
+                            <option value="MS">Mato Grosso do Sul</option>
+                            <option value="MG">Minas Gerais</option>
+                            <option value="PA">Pará</option>
+                            <option value="PB">Paraíba</option>
+                            <option value="PR">Paraná</option>
+                            <option value="PE">Pernambuco</option>
+                            <option value="PI">Piauí</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="RN">Rio Grande do Norte</option>
+                            <option value="RS">Rio Grande do Sul</option>
+                            <option value="RO">Rondônia</option>
+                            <option value="RR">Roraima</option>
+                            <option value="SC">Santa Catarina</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="SE">Sergipe</option>
+                            <option value="TO">Tocantins</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">👤 Registrar Usuário</button>
+                    <button type="button" class="btn btn-secondary" id="cancelarRegistro">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Excluir Paciente -->
+    <div id="excluirPacienteModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🗑️ Excluir Paciente</h3>
+                <button type="button" class="modal-close" id="fecharExcluirModal">&times;</button>
+            </div>
+            
+            <div class="warning-message">
+                <p><strong>⚠️ ATENÇÃO: Esta ação é irreversível!</strong></p>
+                <p>Você está prestes a excluir permanentemente este paciente e todos os seus atendimentos.</p>
+                <p><strong>Paciente:</strong> <span id="pacienteNomeExclusao">-</span></p>
+            </div>
+            
+            <form id="excluirPacienteForm">
+                <div class="form-group">
+                    <label for="senhaExclusao">Digite SUA senha para confirmar *</label>
+                    <input type="password" id="senhaExclusao" name="senha" required 
+                           placeholder="Digite sua senha atual">
+                    <small class="form-help">
+                        <strong>Usuário logado:</strong> <span id="usuarioLogadoExclusao">-</span>
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmarExclusao">Digite "EXCLUIR" para confirmar *</label>
+                    <input type="text" id="confirmarExclusao" name="confirmacao" required 
+                           placeholder="Digite exatamente: EXCLUIR">
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-danger">🗑️ Confirmar Exclusão</button>
+                    <button type="button" class="btn btn-secondary" id="cancelarExclusao">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Mensagens de Feedback -->
+    <div id="messageContainer" class="message-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

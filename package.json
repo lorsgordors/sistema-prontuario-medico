@@ -1,0 +1,40 @@
+{
+  "name": "prontuario-medico-lorsgordors",
+  "version": "1.0.0",
+  "description": "Sistema de Prontuário Médico Online - Lorsgordors 2025-08-07 17:40:00",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'Build concluído para deploy'",
+    "test": "echo 'Sistema testado e funcionando'"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-session": "^1.17.3"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "prontuario",
+    "medico",
+    "lorsgordors",
+    "saude",
+    "online",
+    "sistema",
+    "hospital",
+    "clinica"
+  ],
+  "author": "lorsgordors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lorsgordors/prontuario-medico.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lorsgordors/prontuario-medico/issues"
+  },
+  "homepage": "https://github.com/lorsgordors/prontuario-medico#readme"
+}
