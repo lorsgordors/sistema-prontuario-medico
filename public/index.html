@@ -227,15 +227,17 @@
                         <form id="atendimentoForm" class="atendimento-form hidden">
                             <div class="form-row">
                                 <div class="form-group">
+                                    <label for="atendimentoTitulo">Título *</label>
+                                    <input type="text" id="atendimentoTitulo" name="titulo" required placeholder="Ex: Consulta, Retorno, Exame...">
+                                </div>
+                                <div class="form-group">
                                     <label for="atendimentoData">Data *</label>
                                     <input type="date" id="atendimentoData" name="data" required>
                                 </div>
-                                
                                 <div class="form-group">
                                     <label for="atendimentoHora">Horário *</label>
                                     <input type="time" id="atendimentoHora" name="horario" required>
                                 </div>
-                                
                                 <div class="form-group">
                                     <label for="atendimentoValor">Valor (R$)</label>
                                     <input type="number" id="atendimentoValor" name="valor" step="0.01" min="0">

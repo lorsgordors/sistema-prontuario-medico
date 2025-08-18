@@ -687,5 +687,157 @@
     "detalhes": "Logout realizado",
     "ip": "lorsgordors-system",
     "dataHora": "17/08/2025, 21:34:51"
+  },
+  {
+    "timestamp": "2025-08-18T01:13:59.111Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:13:59"
+  },
+  {
+    "timestamp": "2025-08-18T01:15:30.278Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:15:30"
+  },
+  {
+    "timestamp": "2025-08-18T01:15:37.678Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:15:37"
+  },
+  {
+    "timestamp": "2025-08-18T01:15:38.426Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:15:38"
+  },
+  {
+    "timestamp": "2025-08-18T01:15:38.655Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:15:38"
+  },
+  {
+    "timestamp": "2025-08-18T01:15:43.963Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:15:43"
+  },
+  {
+    "timestamp": "2025-08-18T01:15:44.694Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:15:44"
+  },
+  {
+    "timestamp": "2025-08-18T01:15:44.917Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:15:44"
+  },
+  {
+    "timestamp": "2025-08-18T01:21:09.813Z",
+    "acao": "login_falhou",
+    "usuario": "admin",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:21:09"
+  },
+  {
+    "timestamp": "2025-08-18T01:21:14.819Z",
+    "acao": "login",
+    "usuario": "admin",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:21:14"
+  },
+  {
+    "timestamp": "2025-08-18T01:21:14.846Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 2 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:21:14"
+  },
+  {
+    "timestamp": "2025-08-18T01:21:16.618Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 2 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:21:16"
+  },
+  {
+    "timestamp": "2025-08-18T01:21:29.393Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 2 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:21:29"
+  },
+  {
+    "timestamp": "2025-08-18T01:21:46.663Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 2 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:21:46"
+  },
+  {
+    "timestamp": "2025-08-18T01:21:56.666Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 2 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:21:56"
+  },
+  {
+    "timestamp": "2025-08-18T01:24:21.946Z",
+    "acao": "login",
+    "usuario": "admin",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:24:21"
+  },
+  {
+    "timestamp": "2025-08-18T01:24:22.280Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 2 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:24:22"
+  },
+  {
+    "timestamp": "2025-08-18T01:24:24.151Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 2 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:24:24"
+  },
+  {
+    "timestamp": "2025-08-18T01:24:45.926Z",
+    "acao": "novo_atendimento",
+    "usuario": "admin",
+    "detalhes": "Atendimento registrado para: Artemio Dornelas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:24:45"
   }
 ]

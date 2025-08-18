@@ -200,7 +200,7 @@ app.post('/api/login', async (req, res) => {
         const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
         
         const usuario = usuarios.find(u => 
-            u.login === login && u.senha === hashPassword(senha)
+                u.login === login && u.senha === senha
         );
         
         if (usuario) {
@@ -249,7 +249,7 @@ app.post('/api/alterar-senha', requireAuth, async (req, res) => {
         }
         
         // Verificar senha atual
-        if (usuarios[usuarioIndex].senha !== hashPassword(senhaAtual)) {
+        if (usuarios[usuarioIndex].senha !== senhaAtual) {
             return res.status(401).json({ error: 'Senha atual incorreta' });
         }
         
@@ -260,7 +260,7 @@ app.post('/api/alterar-senha', requireAuth, async (req, res) => {
         }
         
         // Atualizar senha
-        usuarios[usuarioIndex].senha = hashPassword(novaSenha);
+        usuarios[usuarioIndex].senha = novaSenha;
         await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
         
         await logAuditoria('alteracao_senha', req.session.user.login, 'Senha alterada com sucesso');
@@ -316,7 +316,7 @@ app.post('/api/registrar-usuario', async (req, res) => {
         const novoUsuario = {
             id: Math.max(...usuarios.map(u => u.id)) + 1,
             login,
-            senha: hashPassword(senha),
+            senha: senha,
             nomeCompleto,
             tipoRegistro,
             numeroRegistro,
@@ -325,12 +325,9 @@ app.post('/api/registrar-usuario', async (req, res) => {
             criadoEm: new Date().toISOString(),
             criadoPor: admin.login
         };
-        
         usuarios.push(novoUsuario);
         await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
-        
         await logAuditoria('registro_usuario', admin.login, `Novo usuário registrado: ${login} (${nomeCompleto})`);
-        
         res.json({ success: true });
     } catch (error) {
         console.error('Erro ao registrar usuário:', error);
@@ -341,9 +338,8 @@ app.post('/api/registrar-usuario', async (req, res) => {
 // Rota para listar pacientes (filtrados por usuário)
 app.get('/api/pacientes', requireAuth, async (req, res) => {
     try {
-        const files = await fs.readdir('./data/pacientes');
-        const pacientes = [];
-        
+    const files = await fs.readdir('./data/pacientes');
+    const pacientes = [];
         for (const file of files) {
             if (file.endsWith('.json')) {
                 const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
@@ -444,7 +440,7 @@ app.delete('/api/pacientes/:id', requireAuth, async (req, res) => {
         
         // Verificar senha do usuário logado
         const usuario = usuarios.find(u => u.id === req.session.user.id);
-        if (!usuario || usuario.senha !== hashPassword(senha)) {
+        if (!usuario || usuario.senha !== senha) {
             return res.status(401).json({ error: 'Senha incorreta' });
         }
         
@@ -502,7 +498,11 @@ app.post('/api/pacientes/:id/atendimentos', requireAuth, async (req, res) => {
                     
                     const novoAtendimento = {
                         id: Date.now(),
-                        ...atendimentoData,
+                        titulo: atendimentoData.titulo,
+                        data: atendimentoData.data,
+                        horario: atendimentoData.horario,
+                        valor: atendimentoData.valor,
+                        observacoes: atendimentoData.observacoes,
                         profissionalNome: req.session.user.nomeCompleto,
                         profissionalRegistro: `${req.session.user.tipoRegistro}: ${req.session.user.numeroRegistro}`,
                         profissionalEstado: req.session.user.estadoRegistro,

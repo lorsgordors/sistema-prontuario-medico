@@ -736,6 +736,9 @@ class ProntuarioApp {
         container.innerHTML = atendimentosOrdenados.map(atendimento => `
             <div class="atendimento-item">
                 <div class="atendimento-header">
+                    <div class="atendimento-titulo" style="font-weight: bold; color: #667eea; font-size: 1.1em;">
+                        ${atendimento.titulo || 'Atendimento'}
+                    </div>
                     <div class="atendimento-data">
                         📅 ${this.formatDate(atendimento.data)} às ${atendimento.horario}
                     </div>
@@ -771,6 +774,7 @@ class ProntuarioApp {
         const formData = new FormData(form);
         
         const atendimentoData = {
+            titulo: formData.get('titulo'),
             data: formData.get('data'),
             horario: formData.get('horario'),
             observacoes: formData.get('observacoes'),
