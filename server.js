@@ -197,7 +197,7 @@ function requireAdmin(req, res, next) {
 // Rota para editar perfil de usuário (apenas admin, exige senha)
 app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
     try {
-        const { senhaAdmin, ...dadosEditados } = req.body;
+    const { senhaAdmin, novaSenha, ...dadosEditados } = req.body;
         const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
         const admin = usuarios.find(u => u.tipo === 'Administrador');
         if (!admin || admin.senha !== senhaAdmin) {
@@ -209,6 +209,9 @@ app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
         }
         // Atualizar dados permitidos
         Object.assign(usuarios[usuarioIndex], dadosEditados);
+        if (typeof novaSenha === 'string' && novaSenha.trim().length > 0) {
+            usuarios[usuarioIndex].senha = novaSenha;
+        }
         await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
         await logAuditoria('edicao_usuario', req.session.user.login, `Usuário editado: ${usuarios[usuarioIndex].login}`);
         res.json({ success: true, usuario: usuarios[usuarioIndex] });

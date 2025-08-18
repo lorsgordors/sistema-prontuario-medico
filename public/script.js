@@ -1,7 +1,6 @@
 class ProntuarioApp {
 
     showEditarUsuarioModal(id) {
-        // Buscar usuário na lista renderizada
         fetch('/api/usuarios')
             .then(res => res.json())
             .then(usuarios => {
@@ -14,6 +13,8 @@ class ProntuarioApp {
                 document.getElementById('editarUsuarioNome').value = usuario.nomeCompleto;
                 document.getElementById('editarUsuarioLogin').value = usuario.login;
                 document.getElementById('editarUsuarioTipo').value = usuario.tipo;
+                document.getElementById('editarUsuarioNumeroRegistro').value = usuario.numeroRegistro || '';
+                document.getElementById('editarUsuarioNovaSenha').value = '';
                 document.getElementById('editarUsuarioModal').classList.remove('hidden');
             });
     }
@@ -72,12 +73,16 @@ class ProntuarioApp {
             const nomeCompleto = form.nomeCompleto.value;
             const login = form.login.value;
             const tipo = form.tipo.value;
+            const numeroRegistro = form.numeroRegistro.value;
+            const novaSenha = form.novaSenha.value;
             const senhaAdmin = form.senhaAdmin.value;
+            const payload = { nomeCompleto, login, tipo, numeroRegistro, senhaAdmin };
+            if (novaSenha) payload.novaSenha = novaSenha;
             try {
                 const response = await fetch(`/api/usuarios/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nomeCompleto, login, tipo, senhaAdmin })
+                    body: JSON.stringify(payload)
                 });
                 if (response.ok) {
                     this.showMessage('Usuário editado com sucesso!', 'success');
