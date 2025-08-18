@@ -967,5 +967,101 @@
     "detalhes": "Atendimento registrado para: Artemio Dornelas",
     "ip": "lorsgordors-system",
     "dataHora": "17/08/2025, 22:36:48"
+  },
+  {
+    "timestamp": "2025-08-18T01:38:22.775Z",
+    "acao": "logout",
+    "usuario": "admin",
+    "detalhes": "Logout realizado",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:38:22"
+  },
+  {
+    "timestamp": "2025-08-18T01:38:34.863Z",
+    "acao": "login_falhou",
+    "usuario": "loren",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:38:34"
+  },
+  {
+    "timestamp": "2025-08-18T01:38:43.982Z",
+    "acao": "login_falhou",
+    "usuario": "loren",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:38:43"
+  },
+  {
+    "timestamp": "2025-08-18T01:38:44.663Z",
+    "acao": "login_falhou",
+    "usuario": "loren",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:38:44"
+  },
+  {
+    "timestamp": "2025-08-18T01:38:44.879Z",
+    "acao": "login_falhou",
+    "usuario": "loren",
+    "detalhes": "Tentativa de login com credenciais inválidas",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:38:44"
+  },
+  {
+    "timestamp": "2025-08-18T01:39:05.584Z",
+    "acao": "login",
+    "usuario": "Loren",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:39:05"
+  },
+  {
+    "timestamp": "2025-08-18T01:39:05.601Z",
+    "acao": "listagem_pacientes",
+    "usuario": "Loren",
+    "detalhes": "Listou 0 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:39:05"
+  },
+  {
+    "timestamp": "2025-08-18T01:39:49.477Z",
+    "acao": "cadastro_paciente",
+    "usuario": "Loren",
+    "detalhes": "Paciente cadastrado: arthr (ID: 1755481189475)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:39:49"
+  },
+  {
+    "timestamp": "2025-08-18T01:39:49.485Z",
+    "acao": "listagem_pacientes",
+    "usuario": "Loren",
+    "detalhes": "Listou 1 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:39:49"
+  },
+  {
+    "timestamp": "2025-08-18T01:39:49.491Z",
+    "acao": "listagem_pacientes",
+    "usuario": "Loren",
+    "detalhes": "Listou 1 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:39:49"
+  },
+  {
+    "timestamp": "2025-08-18T01:40:40.151Z",
+    "acao": "novo_atendimento",
+    "usuario": "Loren",
+    "detalhes": "Atendimento registrado para: arthr",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:40:40"
+  },
+  {
+    "timestamp": "2025-08-18T01:40:46.960Z",
+    "acao": "logout",
+    "usuario": "Loren",
+    "detalhes": "Logout realizado",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:40:46"
   }
 ]
