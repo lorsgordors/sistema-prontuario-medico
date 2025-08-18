@@ -602,13 +602,13 @@ function startServerLorsgordors(port) {
     // Tentar binding com '0.0.0.0' para aceitar todas as conexões
     const server = app.listen(port, '0.0.0.0', () => {
         console.clear();
-        console.log('🎉 SISTEMA DE PRONTUÁRIO MÉDICO - LORSGORDORS');
-        console.log('='.repeat(75));
-        console.log(`📅 Iniciado: 2025-08-07 15:42:34 (UTC)`);
-        console.log(`👤 Usuário: lorsgordors`);
-        console.log(`⚡ Porta: ${port}`);
-        console.log(`🖥️  Servidor: Aceitando conexões de todas as interfaces`);
-        console.log('='.repeat(75));
+    console.log('🎉 LIZARD PRONTUÁRIO - LORSGORDORS');
+    console.log('='.repeat(75));
+    console.log(`📅 Iniciado: 2025-08-07 15:42:34 (UTC)`);
+    console.log(`👤 Usuário: lorsgordors`);
+    console.log(`⚡ Porta: ${port}`);
+    console.log(`🖥️  Servidor: Aceitando conexões de todas as interfaces`);
+    console.log('='.repeat(75));
         
         console.log('💻 ACESSO LOCAL (seu computador):');
         console.log(`   ✅ http://localhost:${port}`);
@@ -728,7 +728,7 @@ function startServerLorsgordors(port) {
 // Inicialização do sistema para lorsgordors
 ensureDirectories().then(() => {
     const PORT = process.env.PORT || 3000;
-    console.log('🚀 Inicializando Sistema de Prontuário Médico');
+    console.log('🚀 Inicializando Lizard Prontuário');
     console.log('👤 Usuário: lorsgordors');
     console.log('📅 Data: 2025-08-07 15:42:34 (UTC)');
     console.log('📁 Verificando estrutura de dados...');
