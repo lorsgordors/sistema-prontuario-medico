@@ -2,7 +2,7 @@
   {
     "id": 1,
     "login": "admin",
-  "senha": "admin",
+    "senha": "admin",
     "nomeCompleto": "Administrador do Sistema",
     "tipoRegistro": "CPF",
     "numeroRegistro": "000.000.000-00",
@@ -14,9 +14,9 @@
   },
   {
     "id": 2,
-    "login": "Loren",
-  "senha": "loren",
-    "nomeCompleto": "Loren",
+    "login": "loren",
+    "senha": "loren",
+    "nomeCompleto": "Lorena dias",
     "tipoRegistro": "CPF",
     "numeroRegistro": "14501013648",
     "estadoRegistro": "",
@@ -28,7 +28,7 @@
   {
     "id": 3,
     "login": "MARYA DORNELAS",
-  "senha": "marya",
+    "senha": "marya",
     "nomeCompleto": "MARYA DORNELAS",
     "tipoRegistro": "CBO",
     "numeroRegistro": "322110",

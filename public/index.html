@@ -74,6 +74,38 @@
                 <div id="usuariosList" class="usuarios-list">
                     <!-- Lista de usuários será carregada aqui -->
                 </div>
+                <!-- Modal de edição de usuário -->
+                <div id="editarUsuarioModal" class="modal hidden">
+                    <div class="modal-content" style="max-width:400px;">
+                        <h3>Editar Usuário</h3>
+                        <form id="editarUsuarioForm">
+                            <input type="hidden" id="editarUsuarioId" name="id">
+                            <div class="form-group">
+                                <label for="editarUsuarioNome">Nome Completo:</label>
+                                <input type="text" id="editarUsuarioNome" name="nomeCompleto" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarUsuarioLogin">Login:</label>
+                                <input type="text" id="editarUsuarioLogin" name="login" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarUsuarioTipo">Tipo:</label>
+                                <select id="editarUsuarioTipo" name="tipo" required>
+                                    <option value="Administrador">Administrador</option>
+                                    <option value="Profissional">Profissional</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarUsuarioSenhaAdmin">Senha do Admin:</label>
+                                <input type="password" id="editarUsuarioSenhaAdmin" name="senhaAdmin" required>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn btn-primary">Salvar</button>
+                                <button type="button" class="btn btn-secondary" id="cancelarEditarUsuario">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </section>
             <!-- Aba Meu Perfil -->
             <section id="meuPerfil" class="tab-content active">

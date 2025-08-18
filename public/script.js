@@ -1,8 +1,21 @@
 class ProntuarioApp {
 
     showEditarUsuarioModal(id) {
-        // Aqui será implementado o modal de edição
-        alert('Função de edição de usuário em construção. ID: ' + id);
+        // Buscar usuário na lista renderizada
+        fetch('/api/usuarios')
+            .then(res => res.json())
+            .then(usuarios => {
+                const usuario = usuarios.find(u => u.id === id);
+                if (!usuario) {
+                    this.showMessage('Usuário não encontrado', 'error');
+                    return;
+                }
+                document.getElementById('editarUsuarioId').value = usuario.id;
+                document.getElementById('editarUsuarioNome').value = usuario.nomeCompleto;
+                document.getElementById('editarUsuarioLogin').value = usuario.login;
+                document.getElementById('editarUsuarioTipo').value = usuario.tipo;
+                document.getElementById('editarUsuarioModal').classList.remove('hidden');
+            });
     }
     constructor() {
         this.currentUser = null;
@@ -46,6 +59,38 @@ class ProntuarioApp {
     }
     
     setupEventListeners() {
+        // Editar usuário - fechar modal
+        document.getElementById('cancelarEditarUsuario').addEventListener('click', () => {
+            document.getElementById('editarUsuarioModal').classList.add('hidden');
+        });
+
+        // Editar usuário - submit
+        document.getElementById('editarUsuarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const id = parseInt(form.id.value);
+            const nomeCompleto = form.nomeCompleto.value;
+            const login = form.login.value;
+            const tipo = form.tipo.value;
+            const senhaAdmin = form.senhaAdmin.value;
+            try {
+                const response = await fetch(`/api/usuarios/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nomeCompleto, login, tipo, senhaAdmin })
+                });
+                if (response.ok) {
+                    this.showMessage('Usuário editado com sucesso!', 'success');
+                    document.getElementById('editarUsuarioModal').classList.add('hidden');
+                    this.loadUsuarios();
+                } else {
+                    const error = await response.json();
+                    this.showMessage(error.error || 'Erro ao editar usuário', 'error');
+                }
+            } catch {
+                this.showMessage('Erro de conexão ao editar usuário', 'error');
+            }
+        });
         // Login
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();

@@ -1063,5 +1063,61 @@
     "detalhes": "Logout realizado",
     "ip": "lorsgordors-system",
     "dataHora": "17/08/2025, 22:40:46"
+  },
+  {
+    "timestamp": "2025-08-18T01:43:15.627Z",
+    "acao": "login",
+    "usuario": "admin",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:43:15"
+  },
+  {
+    "timestamp": "2025-08-18T01:43:15.697Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 3 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:43:15"
+  },
+  {
+    "timestamp": "2025-08-18T01:44:15.664Z",
+    "acao": "edicao_usuario",
+    "usuario": "admin",
+    "detalhes": "Usuário editado: loren",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:44:15"
+  },
+  {
+    "timestamp": "2025-08-18T01:44:25.529Z",
+    "acao": "logout",
+    "usuario": "admin",
+    "detalhes": "Logout realizado",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:44:25"
+  },
+  {
+    "timestamp": "2025-08-18T01:44:37.529Z",
+    "acao": "login",
+    "usuario": "loren",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:44:37"
+  },
+  {
+    "timestamp": "2025-08-18T01:44:37.555Z",
+    "acao": "listagem_pacientes",
+    "usuario": "loren",
+    "detalhes": "Listou 1 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:44:37"
+  },
+  {
+    "timestamp": "2025-08-18T01:44:39.916Z",
+    "acao": "listagem_pacientes",
+    "usuario": "loren",
+    "detalhes": "Listou 1 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "17/08/2025, 22:44:39"
   }
 ]
