@@ -255,12 +255,50 @@
                 <div class="content-header">
                     <h2 id="detalhePacienteNome">📋 Paciente</h2>
                     <div class="detail-actions">
+                        <button id="editarPacienteBtn" class="btn btn-primary">✏️ Editar Paciente</button>
                         <button id="excluirPacienteBtn" class="btn btn-danger">🗑️ Excluir Paciente</button>
                         <button id="voltarPacientes" class="btn btn-secondary">← Voltar</button>
                     </div>
                 </div>
                 
                 <div class="paciente-details">
+                <!-- Modal de edição de paciente -->
+                <div id="editarPacienteModal" class="modal hidden">
+                    <div class="modal-content" style="max-width:400px;">
+                        <h3>Editar Paciente</h3>
+                        <form id="editarPacienteForm">
+                            <input type="hidden" id="editarPacienteId" name="id">
+                            <div class="form-group">
+                                <label for="editarPacienteNome">Nome Completo:</label>
+                                <input type="text" id="editarPacienteNome" name="nomeCompleto" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarPacienteCpf">CPF:</label>
+                                <input type="text" id="editarPacienteCpf" name="cpf" required maxlength="14">
+                            </div>
+                            <div class="form-group">
+                                <label for="editarPacienteDataNasc">Data de Nascimento:</label>
+                                <input type="date" id="editarPacienteDataNasc" name="dataNascimento" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="editarPacienteTelefone">Telefone:</label>
+                                <input type="tel" id="editarPacienteTelefone" name="telefone">
+                            </div>
+                            <div class="form-group">
+                                <label for="editarPacienteEmail">E-mail:</label>
+                                <input type="email" id="editarPacienteEmail" name="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="editarPacienteEndereco">Endereço:</label>
+                                <textarea id="editarPacienteEndereco" name="endereco" rows="3"></textarea>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn btn-primary">Salvar</button>
+                                <button type="button" class="btn btn-secondary" id="cancelarEditarPaciente">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
                     <div class="paciente-info-card">
                         <h3>Informações do Paciente</h3>
                         <div id="pacienteInfoContent">

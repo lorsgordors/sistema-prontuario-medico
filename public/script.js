@@ -1,4 +1,16 @@
 class ProntuarioApp {
+    showEditarPacienteModal() {
+        const paciente = this.currentPaciente;
+        if (!paciente) return;
+        document.getElementById('editarPacienteId').value = paciente.id;
+        document.getElementById('editarPacienteNome').value = paciente.nomeCompleto;
+        document.getElementById('editarPacienteCpf').value = paciente.cpf;
+        document.getElementById('editarPacienteDataNasc').value = paciente.dataNascimento;
+        document.getElementById('editarPacienteTelefone').value = paciente.telefone || '';
+        document.getElementById('editarPacienteEmail').value = paciente.email || '';
+        document.getElementById('editarPacienteEndereco').value = paciente.endereco || '';
+        document.getElementById('editarPacienteModal').classList.remove('hidden');
+    }
 
     showEditarUsuarioModal(id) {
         fetch('/api/usuarios')
@@ -60,6 +72,44 @@ class ProntuarioApp {
     }
     
     setupEventListeners() {
+        // Editar paciente - abrir modal
+        document.getElementById('editarPacienteBtn').addEventListener('click', () => {
+            this.showEditarPacienteModal();
+        });
+        // Editar paciente - fechar modal
+        document.getElementById('cancelarEditarPaciente').addEventListener('click', () => {
+            document.getElementById('editarPacienteModal').classList.add('hidden');
+        });
+        // Editar paciente - submit
+        document.getElementById('editarPacienteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const id = parseInt(form.id.value);
+            const nomeCompleto = form.nomeCompleto.value;
+            const cpf = form.cpf.value;
+            const dataNascimento = form.dataNascimento.value;
+            const telefone = form.telefone.value;
+            const email = form.email.value;
+            const endereco = form.endereco.value;
+            try {
+                const response = await fetch(`/api/pacientes/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nomeCompleto, cpf, dataNascimento, telefone, email, endereco })
+                });
+                if (response.ok) {
+                    this.showMessage('Paciente editado com sucesso!', 'success');
+                    document.getElementById('editarPacienteModal').classList.add('hidden');
+                    this.showPacienteDetails(id);
+                    this.loadPacientes();
+                } else {
+                    const error = await response.json();
+                    this.showMessage(error.error || 'Erro ao editar paciente', 'error');
+                }
+            } catch {
+                this.showMessage('Erro de conexão ao editar paciente', 'error');
+            }
+        });
         // Editar usuário - fechar modal
         document.getElementById('cancelarEditarUsuario').addEventListener('click', () => {
             document.getElementById('editarUsuarioModal').classList.add('hidden');

@@ -439,6 +439,47 @@ app.post('/api/pacientes', requireAuth, async (req, res) => {
 });
 
 // Rota para buscar paciente específico
+// Rota para editar paciente
+app.put('/api/pacientes/:id', requireAuth, async (req, res) => {
+    try {
+        const files = await fs.readdir('./data/pacientes');
+        let pacienteFile = null;
+        let paciente = null;
+        for (const file of files) {
+            if (file.endsWith('.json')) {
+                const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
+                const p = JSON.parse(data);
+                if (p.id == req.params.id) {
+                    pacienteFile = file;
+                    paciente = p;
+                    break;
+                }
+            }
+        }
+        if (!paciente) {
+            return res.status(404).json({ error: 'Paciente não encontrado' });
+        }
+        // Verificar permissão de edição
+        const permissao = podeEditarPaciente(req.session.user, paciente);
+        if (!permissao.pode) {
+            return res.status(403).json({ error: permissao.motivo });
+        }
+        // Atualizar dados permitidos
+        const { nomeCompleto, cpf, dataNascimento, telefone, email, endereco } = req.body;
+        paciente.nomeCompleto = nomeCompleto;
+        paciente.cpf = cpf;
+        paciente.dataNascimento = dataNascimento;
+        paciente.telefone = telefone;
+        paciente.email = email;
+        paciente.endereco = endereco;
+        await fs.writeFile(`./data/pacientes/${pacienteFile}`, JSON.stringify(paciente, null, 2));
+        await logAuditoria('edicao_paciente', req.session.user.login, `Paciente editado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
+        res.json({ success: true, paciente });
+    } catch (error) {
+        console.error('Erro ao editar paciente:', error);
+        res.status(500).json({ error: 'Erro ao editar paciente' });
+    }
+});
 app.get('/api/pacientes/:id', requireAuth, async (req, res) => {
     try {
         const files = await fs.readdir('./data/pacientes');
