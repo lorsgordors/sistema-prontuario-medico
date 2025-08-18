@@ -61,10 +61,20 @@
             <button class="nav-btn active" data-tab="meuPerfil">👤 Meu Perfil</button>
             <button class="nav-btn" data-tab="pacientes">👥 Pacientes</button>
             <button class="nav-btn" data-tab="cadastroPaciente">➕ Novo Paciente</button>
+            <button class="nav-btn" data-tab="usuarios" id="usuariosTabBtn" style="display:none">👥 Usuários</button>
         </nav>
 
         <!-- Conteúdo Principal -->
         <main class="main-content">
+            <!-- Aba Usuários (apenas admin) -->
+            <section id="usuarios" class="tab-content">
+                <div class="content-header">
+                    <h2>👥 Usuários Registrados</h2>
+                </div>
+                <div id="usuariosList" class="usuarios-list">
+                    <!-- Lista de usuários será carregada aqui -->
+                </div>
+            </section>
             <!-- Aba Meu Perfil -->
             <section id="meuPerfil" class="tab-content active">
                 <div class="content-header">

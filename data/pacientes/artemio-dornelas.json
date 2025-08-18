@@ -31,11 +31,24 @@
       "profissionalEstado": null,
       "profissionalId": 1,
       "criadoEm": "2025-08-18T01:24:45.923Z"
+    },
+    {
+      "id": 1755481008240,
+      "titulo": "exame",
+      "data": "2025-08-18",
+      "horario": "22:36",
+      "valor": "120",
+      "observacoes": "teste de prontuario",
+      "profissionalNome": "Administrador do Sistema",
+      "profissionalRegistro": "CPF: 000.000.000-00",
+      "profissionalEstado": null,
+      "profissionalId": 1,
+      "criadoEm": "2025-08-18T01:36:48.240Z"
     }
   ],
   "criadoEm": "2025-08-07T14:49:13.457Z",
   "criadoPor": "MARYA DORNELAS",
   "criadoPorId": 3,
   "criadoPorRegistro": "CBO: 322110",
-  "ultimaAtualizacao": "2025-08-18T01:24:45.923Z"
+  "ultimaAtualizacao": "2025-08-18T01:36:48.240Z"
 }

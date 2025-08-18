@@ -194,6 +194,39 @@ function requireAdmin(req, res, next) {
 }
 
 // Rotas de autenticação
+// Rota para editar perfil de usuário (apenas admin, exige senha)
+app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
+    try {
+        const { senhaAdmin, ...dadosEditados } = req.body;
+        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        const admin = usuarios.find(u => u.tipo === 'Administrador');
+        if (!admin || admin.senha !== senhaAdmin) {
+            return res.status(401).json({ error: 'Senha do administrador incorreta' });
+        }
+        const usuarioIndex = usuarios.findIndex(u => u.id == req.params.id);
+        if (usuarioIndex === -1) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+        // Atualizar dados permitidos
+        Object.assign(usuarios[usuarioIndex], dadosEditados);
+        await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
+        await logAuditoria('edicao_usuario', req.session.user.login, `Usuário editado: ${usuarios[usuarioIndex].login}`);
+        res.json({ success: true, usuario: usuarios[usuarioIndex] });
+    } catch (error) {
+        console.error('Erro ao editar usuário:', error);
+        res.status(500).json({ error: 'Erro ao editar usuário' });
+    }
+});
+// Rota para listar todos os usuários (apenas admin)
+app.get('/api/usuarios', requireAdmin, async (req, res) => {
+    try {
+        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        res.json(usuarios);
+    } catch (error) {
+        console.error('Erro ao listar usuários:', error);
+        res.status(500).json({ error: 'Erro ao listar usuários' });
+    }
+});
 app.post('/api/login', async (req, res) => {
     try {
         const { login, senha } = req.body;

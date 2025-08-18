@@ -1,4 +1,9 @@
 class ProntuarioApp {
+
+    showEditarUsuarioModal(id) {
+        // Aqui será implementado o modal de edição
+        alert('Função de edição de usuário em construção. ID: ' + id);
+    }
     constructor() {
         this.currentUser = null;
         this.currentPaciente = null;
@@ -466,6 +471,13 @@ class ProntuarioApp {
             estadoItem.style.display = 'none';
         }
         
+        // Mostrar aba de usuários se for admin
+        const usuariosTabBtn = document.getElementById('usuariosTabBtn');
+        if (this.currentUser.tipo === 'Administrador') {
+            usuariosTabBtn.style.display = '';
+        } else {
+            usuariosTabBtn.style.display = 'none';
+        }
         // Carregar dados
         this.loadEstatisticas();
         this.loadPacientes();
@@ -515,7 +527,38 @@ class ProntuarioApp {
             this.loadPacientes();
         } else if (tabName === 'meuPerfil') {
             this.loadEstatisticas();
+        } else if (tabName === 'usuarios' && this.currentUser.tipo === 'Administrador') {
+            this.loadUsuarios();
         }
+    }
+
+    async loadUsuarios() {
+        try {
+            const response = await fetch('/api/usuarios');
+            if (response.ok) {
+                const usuarios = await response.json();
+                this.renderUsuarios(usuarios);
+            } else {
+                document.getElementById('usuariosList').innerHTML = '<div class="text-center">Erro ao carregar usuários.</div>';
+            }
+        } catch {
+            document.getElementById('usuariosList').innerHTML = '<div class="text-center">Erro de conexão.</div>';
+        }
+    }
+
+    renderUsuarios(usuarios) {
+        const container = document.getElementById('usuariosList');
+        if (!usuarios || usuarios.length === 0) {
+            container.innerHTML = '<div class="text-center">Nenhum usuário registrado.</div>';
+            return;
+        }
+        container.innerHTML = usuarios.map(usuario => `
+            <div class="usuario-item" style="border-bottom:1px solid #e2e8f0;padding:12px 0;">
+                <strong>${usuario.nomeCompleto}</strong> <span style="color:#718096">(${usuario.login})</span><br>
+                <span>Tipo: ${usuario.tipo}</span> | <span>Registro: ${usuario.tipoRegistro} ${usuario.numeroRegistro}</span>
+                <button class="btn btn-secondary" onclick="app.showEditarUsuarioModal(${usuario.id})">Editar</button>
+            </div>
+        `).join('');
     }
     
     async handleCadastroPaciente() {
