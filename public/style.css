@@ -697,23 +697,76 @@ body {
 .atendimento-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 10px;
     flex-wrap: wrap;
+    gap: 10px;
+}
+
+.atendimento-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.atendimento-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 5px;
 }
 
 .atendimento-data {
     font-weight: 600;
     color: #4a5568;
+    flex-shrink: 0;
 }
 
 .atendimento-valor {
     background: #667eea;
     color: white;
-    padding: 4px 12px;
+    padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.9rem;
     font-weight: 500;
+    display: inline-block;
+    white-space: nowrap;
+    align-self: flex-start;
+    margin-top: 4px;
+}
+
+.atendimento-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-delete-atendimento {
+    background: #fee;
+    border: 1px solid #fcc;
+    color: #e53e3e;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-delete-atendimento:hover {
+    background: #fed7d7;
+    border-color: #feb2b2;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(229, 62, 62, 0.3);
+}
+
+.btn-delete-atendimento:active {
+    transform: scale(0.95);
 }
 
 .atendimento-obs {
@@ -1010,6 +1063,15 @@ body {
         gap: 10px;
     }
     
+    .atendimento-info {
+        width: 100%;
+    }
+    
+    .atendimento-actions {
+        align-self: flex-end;
+        margin-top: -5px;
+    }
+    
     .atendimento-data {
         font-size: 0.95rem;
     }
@@ -1239,9 +1301,23 @@ body {
         align-items: flex-start;
     }
     
+    .btn-delete-atendimento {
+        padding: 4px 6px;
+        font-size: 11px;
+        min-width: 26px;
+        min-height: 26px;
+        border-radius: 4px;
+    }
+    
     .atendimento-data {
         font-size: 0.9rem;
         font-weight: 700;
+    }
+    
+    .atendimento-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
     }
     
     .atendimento-valor {
@@ -1249,6 +1325,7 @@ body {
         padding: 4px 10px;
         border-radius: 15px;
         align-self: flex-start;
+        margin-top: 0;
     }
     
     .atendimento-obs {

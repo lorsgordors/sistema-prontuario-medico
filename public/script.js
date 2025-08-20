@@ -879,13 +879,24 @@ class ProntuarioApp {
         container.innerHTML = atendimentosOrdenados.map(atendimento => `
             <div class="atendimento-item">
                 <div class="atendimento-header">
-                    <div class="atendimento-titulo" style="font-weight: bold; color: #667eea; font-size: 1.1em;">
-                        ${atendimento.titulo || 'Atendimento'}
+                    <div class="atendimento-info">
+                        <div class="atendimento-titulo" style="font-weight: bold; color: #667eea; font-size: 1.1em;">
+                            ${atendimento.titulo || 'Atendimento'}
+                        </div>
+                        <div class="atendimento-meta">
+                            <span class="atendimento-data">
+                                📅 ${this.formatDate(atendimento.data)} às ${atendimento.horario}
+                            </span>
+                            ${atendimento.valor ? `<span class="atendimento-valor">R$ ${parseFloat(atendimento.valor).toFixed(2)}</span>` : ''}
+                        </div>
                     </div>
-                    <div class="atendimento-data">
-                        📅 ${this.formatDate(atendimento.data)} às ${atendimento.horario}
+                    <div class="atendimento-actions">
+                        ${this.canDeleteAtendimento(atendimento) ? `
+                            <button class="btn-delete-atendimento" onclick="app.confirmarExclusaoAtendimento('${atendimento.id}')" title="Excluir atendimento">
+                                🗑️
+                            </button>
+                        ` : ''}
                     </div>
-                    ${atendimento.valor ? `<div class="atendimento-valor">R$ ${parseFloat(atendimento.valor).toFixed(2)}</div>` : ''}
                 </div>
                 <div class="atendimento-obs">${atendimento.observacoes}</div>
                 <div class="atendimento-profissional">
@@ -945,6 +956,60 @@ class ProntuarioApp {
             }
         } catch (error) {
             this.showMessage('Erro ao registrar atendimento', 'error');
+        }
+    }
+    
+    canDeleteAtendimento(atendimento) {
+        // Admin pode excluir qualquer atendimento
+        if (this.currentUser.tipo === 'Administrador') {
+            return true;
+        }
+        
+        // Profissionais podem excluir apenas seus próprios atendimentos
+        return atendimento.profissionalId === this.currentUser.id;
+    }
+    
+    async confirmarExclusaoAtendimento(atendimentoId) {
+        const atendimento = this.currentPaciente.atendimentos.find(a => a.id == atendimentoId);
+        if (!atendimento) {
+            this.showMessage('Atendimento não encontrado', 'error');
+            return;
+        }
+        
+        const confirmar = confirm(
+            `Tem certeza que deseja excluir o atendimento?\n\n` +
+            `📋 Título: ${atendimento.titulo || 'Sem título'}\n` +
+            `📅 Data: ${this.formatDate(atendimento.data)} às ${atendimento.horario}\n` +
+            `👨‍⚕️ Profissional: ${atendimento.profissionalNome}\n\n` +
+            `⚠️ Esta ação não pode ser desfeita!`
+        );
+        
+        if (confirmar) {
+            await this.excluirAtendimento(atendimentoId);
+        }
+    }
+    
+    async excluirAtendimento(atendimentoId) {
+        try {
+            const response = await fetch(`/api/pacientes/${this.currentPaciente.id}/atendimentos/${atendimentoId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                this.showMessage('Atendimento excluído com sucesso!', 'success');
+                // Recarregar detalhes do paciente
+                this.showPacienteDetails(this.currentPaciente.id);
+                this.loadEstatisticas(); // Atualizar estatísticas
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error, 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao excluir atendimento:', error);
+            this.showMessage('Erro ao excluir atendimento', 'error');
         }
     }
     

@@ -565,6 +565,67 @@ app.post('/api/pacientes/:id/atendimentos', requireAuth, async (req, res) => {
     }
 });
 
+// Rota para excluir atendimento
+app.delete('/api/pacientes/:id/atendimentos/:atendimentoId', requireAuth, async (req, res) => {
+    try {
+        const { id: pacienteId, atendimentoId } = req.params;
+        
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
+        
+        for (const file of files) {
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && paciente.id == pacienteId) {
+                // Verificar se o usuário pode editar este paciente
+                const permissao = podeEditarPaciente(req.session.user, paciente);
+                if (!permissao.pode) {
+                    return res.status(403).json({ error: permissao.motivo });
+                }
+                
+                // Encontrar o índice do atendimento
+                const atendimentoIndex = paciente.atendimentos.findIndex(
+                    atend => atend.id == atendimentoId
+                );
+                
+                if (atendimentoIndex === -1) {
+                    return res.status(404).json({ error: 'Atendimento não encontrado' });
+                }
+                
+                const atendimentoRemovido = paciente.atendimentos[atendimentoIndex];
+                
+                // Verificar se o usuário pode excluir este atendimento específico
+                if (req.session.user.tipo !== 'Administrador' && 
+                    atendimentoRemovido.profissionalId !== req.session.user.id) {
+                    return res.status(403).json({ 
+                        error: 'Você só pode excluir atendimentos que você mesmo registrou' 
+                    });
+                }
+                
+                // Remover o atendimento
+                paciente.atendimentos.splice(atendimentoIndex, 1);
+                paciente.ultimaAtualizacao = new Date().toISOString();
+                
+                // Salvar no GitHub (mesmo arquivo)
+                await saveJsonToGithub(`pacientes/${file.name}`, paciente, 'Atendimento excluído via API');
+                
+                await logAuditoria('excluir_atendimento', req.session.user.login, 
+                    `Atendimento excluído do paciente: ${paciente.nomeCompleto} - Título: ${atendimentoRemovido.titulo || 'Sem título'}`);
+                
+                return res.json({ 
+                    success: true, 
+                    message: 'Atendimento excluído com sucesso',
+                    atendimentoRemovido 
+                });
+            }
+        }
+        
+        res.status(404).json({ error: 'Paciente não encontrado' });
+    } catch (error) {
+        console.error('Erro ao excluir atendimento:', error);
+        res.status(500).json({ error: 'Erro ao excluir atendimento' });
+    }
+});
+
 // Rota para obter tipos de registro
 app.get('/api/tipos-registro', (req, res) => {
     const tipos = [
