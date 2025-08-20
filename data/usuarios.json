@@ -1,14 +1,5 @@
 [
   {
-    "id": 1,
-    "login": "admin",
-    "senha": "admin123",
-    "nomeCompleto": "Administrador do Sistema - DevLizard",
-    "tipoRegistro": "CPF",
-    "numeroRegistro": "000.000.000-00",
-    "estadoRegistro": null,
-    "tipo": "Administrador",
-    "criadoEm": "2025-08-07T15:42:34.000Z",
-    "criadoPor": "Sistema"
+    
   }
 ]
