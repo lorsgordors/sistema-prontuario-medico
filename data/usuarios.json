@@ -2,40 +2,13 @@
   {
     "id": 1,
     "login": "admin",
-    "senha": "admin",
-    "nomeCompleto": "Administrador do Sistema",
+    "senha": "admin123",
+    "nomeCompleto": "Administrador do Sistema - DevLizard",
     "tipoRegistro": "CPF",
     "numeroRegistro": "000.000.000-00",
     "estadoRegistro": null,
     "tipo": "Administrador",
-    "criadoEm": "2025-08-07T15:14:32.730Z",
-    "criadoPor": "Sistema",
-    "versaoSistema": "2025-08-07 16:35:59"
-  },
-  {
-    "id": 2,
-    "login": "loren",
-    "senha": "123",
-    "nomeCompleto": "Lorena dias",
-    "tipoRegistro": "CPF",
-    "numeroRegistro": "14501013648",
-    "estadoRegistro": "",
-    "tipo": "Profissional",
-    "criadoEm": "2025-08-07T15:14:32.732Z",
-    "criadoPor": "Sistema",
-    "versaoSistema": "2025-08-07 16:35:59"
-  },
-  {
-    "id": 3,
-    "login": "MARYA DORNELAS",
-    "senha": "marya",
-    "nomeCompleto": "MARYA DORNELAS",
-    "tipoRegistro": "CBO",
-    "numeroRegistro": "322110",
-    "estadoRegistro": "",
-    "tipo": "Profissional",
-    "criadoEm": "2025-08-07T15:14:32.732Z",
-    "criadoPor": "Sistema",
-    "versaoSistema": "2025-08-07 16:35:59"
+    "criadoEm": "2025-08-07T15:42:34.000Z",
+    "criadoPor": "Sistema"
   }
 ]

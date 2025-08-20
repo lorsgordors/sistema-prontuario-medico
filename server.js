@@ -1,7 +1,10 @@
+// Carregar variáveis de ambiente
+require('dotenv').config();
+
 const express = require('express');
+const { saveJsonToGithub, fetchJsonFromGithub, listFilesFromGithub, deleteFileFromGithub } = require('./github-db');
 const fs = require('fs').promises;
 const path = require('path');
-const crypto = require('crypto');
 const session = require('express-session');
 const os = require('os');
 
@@ -17,11 +20,6 @@ app.use(session({
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24 horas
 }));
 
-// Função para criar hash da senha
-function hashPassword(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
-}
-
 // Função para validar força da senha
 function validarForcaSenha(senha) {
     if (senha.length < 6) return { valida: false, motivo: 'Senha deve ter pelo menos 6 caracteres' };
@@ -33,13 +31,7 @@ function validarForcaSenha(senha) {
 // Função para log de auditoria
 async function logAuditoria(acao, usuario, detalhes) {
     try {
-        let logs = [];
-        try {
-            const logsData = await fs.readFile('./data/logs.json', 'utf8');
-            logs = JSON.parse(logsData);
-        } catch {
-            // Arquivo não existe, criar novo
-        }
+        let logs = await fetchJsonFromGithub('logs.json');
         
         logs.push({
             timestamp: new Date().toISOString(),
@@ -55,7 +47,7 @@ async function logAuditoria(acao, usuario, detalhes) {
             logs = logs.slice(-1000);
         }
         
-        await fs.writeFile('./data/logs.json', JSON.stringify(logs, null, 2));
+        await saveJsonToGithub('logs.json', logs, 'Novo log de auditoria');
     } catch (error) {
         console.error('Erro ao gravar log:', error);
     }
@@ -110,68 +102,18 @@ function getAllNetworkIPs() {
     return ips;
 }
 
-// Função para garantir que as pastas existam
-async function ensureDirectories() {
+// Função para garantir que o GitHub esteja inicializado
+async function ensureGitHubInit() {
     try {
-        await fs.mkdir('./data', { recursive: true });
-        await fs.mkdir('./data/pacientes', { recursive: true });
-        
-        // Criar arquivo de usuários padrão se não existir
-        try {
-            await fs.access('./data/usuarios.json');
-        } catch {
-            const usuariosPadrao = [
-                {
-                    id: 1,
-                    login: 'admin',
-                    senha: hashPassword('admin123'),
-                    nomeCompleto: 'Administrador do Sistema - Lorsgordors',
-                    tipoRegistro: 'CPF',
-                    numeroRegistro: '000.000.000-00',
-                    estadoRegistro: null,
-                    tipo: 'Administrador',
-                    criadoEm: '2025-08-07T15:42:34.000Z',
-                    criadoPor: 'Sistema'
-                }
-            ];
-            await fs.writeFile('./data/usuarios.json', JSON.stringify(usuariosPadrao, null, 2));
-            console.log('✅ Sistema inicializado com usuário padrão: admin/admin123');
-        }
-        
-        // Migrar usuários existentes se necessário
-        await migrarUsuarios();
-    } catch (error) {
-        console.error('Erro ao criar diretórios:', error);
-    }
-}
-
-// Função para migrar usuários existentes
-async function migrarUsuarios() {
-    try {
-        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
-        let migracaoNecessaria = false;
-        
-        usuarios.forEach(usuario => {
-            if (!usuario.tipoRegistro) {
-                usuario.tipoRegistro = 'CPF';
-                usuario.numeroRegistro = usuario.cpf || '000.000.000-00';
-                usuario.estadoRegistro = null;
-                usuario.tipo = usuario.tipo || 'Profissional';
-                migracaoNecessaria = true;
-            }
-            if (!usuario.criadoEm) {
-                usuario.criadoEm = new Date().toISOString();
-                usuario.criadoPor = 'Sistema';
-                migracaoNecessaria = true;
-            }
-        });
-        
-        if (migracaoNecessaria) {
-            await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
-            console.log('✅ Migração de usuários concluída');
+        // Verifica se já existe usuário no GitHub
+        const usuarios = await fetchJsonFromGithub('usuarios.json');
+        if (usuarios.length === 0) {
+            console.log('⚠️  GitHub não inicializado. Execute node init-github.js');
+        } else {
+            console.log('✅ GitHub inicializado com', usuarios.length, 'usuários');
         }
     } catch (error) {
-        console.log('ℹ️  Nenhuma migração necessária');
+        console.log('⚠️  GitHub não inicializado. Execute node init-github.js');
     }
 }
 
@@ -197,8 +139,8 @@ function requireAdmin(req, res, next) {
 // Rota para editar perfil de usuário (apenas admin, exige senha)
 app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
     try {
-    const { senhaAdmin, novaSenha, ...dadosEditados } = req.body;
-        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        const { senhaAdmin, novaSenha, ...dadosEditados } = req.body;
+        const usuarios = await fetchJsonFromGithub('usuarios.json');
         const admin = usuarios.find(u => u.tipo === 'Administrador');
         if (!admin || admin.senha !== senhaAdmin) {
             return res.status(401).json({ error: 'Senha do administrador incorreta' });
@@ -212,7 +154,7 @@ app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
         if (typeof novaSenha === 'string' && novaSenha.trim().length > 0) {
             usuarios[usuarioIndex].senha = novaSenha;
         }
-        await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
+        await saveJsonToGithub('usuarios.json', usuarios, 'Editando usuário via API');
         await logAuditoria('edicao_usuario', req.session.user.login, `Usuário editado: ${usuarios[usuarioIndex].login}`);
         res.json({ success: true, usuario: usuarios[usuarioIndex] });
     } catch (error) {
@@ -223,7 +165,7 @@ app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
 // Rota para listar todos os usuários (apenas admin)
 app.get('/api/usuarios', requireAdmin, async (req, res) => {
     try {
-        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        const usuarios = await fetchJsonFromGithub('usuarios.json');
         res.json(usuarios);
     } catch (error) {
         console.error('Erro ao listar usuários:', error);
@@ -233,7 +175,7 @@ app.get('/api/usuarios', requireAdmin, async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { login, senha } = req.body;
-        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        const usuarios = await fetchJsonFromGithub('usuarios.json');
         
         const usuario = usuarios.find(u => 
                 u.login === login && u.senha === senha
@@ -276,7 +218,7 @@ app.get('/api/me', requireAuth, (req, res) => {
 app.post('/api/alterar-senha', requireAuth, async (req, res) => {
     try {
         const { senhaAtual, novaSenha } = req.body;
-        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        const usuarios = await fetchJsonFromGithub('usuarios.json');
         
         const usuarioIndex = usuarios.findIndex(u => u.id === req.session.user.id);
         
@@ -297,7 +239,7 @@ app.post('/api/alterar-senha', requireAuth, async (req, res) => {
         
         // Atualizar senha
         usuarios[usuarioIndex].senha = novaSenha;
-        await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
+        await saveJsonToGithub('usuarios.json', usuarios, 'Alteração de senha via API');
         
         await logAuditoria('alteracao_senha', req.session.user.login, 'Senha alterada com sucesso');
         
@@ -323,7 +265,7 @@ app.post('/api/registrar-usuario', async (req, res) => {
             estadoRegistro 
         } = req.body;
         
-        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        const usuarios = await fetchJsonFromGithub('usuarios.json');
         
         // Verificar se existe um admin
         const admin = usuarios.find(u => u.tipo === 'Administrador');
@@ -332,7 +274,7 @@ app.post('/api/registrar-usuario', async (req, res) => {
         }
         
         // Verificar senha do admin
-        if (admin.senha !== hashPassword(senhaAdmin)) {
+        if (admin.senha !== senhaAdmin) {
             await logAuditoria('registro_usuario_falhou', admin.login, `Tentativa de registro com senha admin incorreta para usuário: ${login}`);
             return res.status(401).json({ error: 'Senha do administrador incorreta' });
         }
@@ -362,7 +304,7 @@ app.post('/api/registrar-usuario', async (req, res) => {
             criadoPor: admin.login
         };
         usuarios.push(novoUsuario);
-        await fs.writeFile('./data/usuarios.json', JSON.stringify(usuarios, null, 2));
+        await saveJsonToGithub('usuarios.json', usuarios, 'Registro de novo usuário via API');
         await logAuditoria('registro_usuario', admin.login, `Novo usuário registrado: ${login} (${nomeCompleto})`);
         res.json({ success: true });
     } catch (error) {
@@ -374,32 +316,28 @@ app.post('/api/registrar-usuario', async (req, res) => {
 // Rota para listar pacientes (filtrados por usuário)
 app.get('/api/pacientes', requireAuth, async (req, res) => {
     try {
-    const files = await fs.readdir('./data/pacientes');
-    const pacientes = [];
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
+        const pacientesFiltrados = [];
+        
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
-                const paciente = JSON.parse(data);
-                
-                // Filtrar pacientes baseado no usuário
-                if (podeVerPaciente(req.session.user, paciente)) {
-                    // Adicionar informação do criador para o admin
-                    if (req.session.user.tipo === 'Administrador') {
-                        paciente.infoAdicional = {
-                            criadoPor: paciente.criadoPor,
-                            criadoEm: paciente.criadoEm
-                        };
-                    }
-                    pacientes.push(paciente);
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && podeVerPaciente(req.session.user, paciente)) {
+                if (req.session.user.tipo === 'Administrador') {
+                    paciente.infoAdicional = {
+                        criadoPor: paciente.criadoPor,
+                        criadoEm: paciente.criadoEm
+                    };
                 }
+                pacientesFiltrados.push(paciente);
             }
         }
         
         // Log de auditoria
         await logAuditoria('listagem_pacientes', req.session.user.login, 
-            `Listou ${pacientes.length} paciente(s)`);
+            `Listou ${pacientesFiltrados.length} paciente(s)`);
         
-        res.json(pacientes);
+        res.json(pacientesFiltrados);
     } catch (error) {
         console.error('Erro ao buscar pacientes:', error);
         res.status(500).json({ error: 'Erro ao buscar pacientes' });
@@ -426,7 +364,8 @@ app.post('/api/pacientes', requireAuth, async (req, res) => {
             ultimaAtualizacao: new Date().toISOString()
         };
         
-        await fs.writeFile(`./data/pacientes/${fileName}`, JSON.stringify(paciente, null, 2));
+        // Salvar paciente em arquivo individual
+        await saveJsonToGithub(`pacientes/${fileName}`, paciente, 'Cadastro de paciente via API');
         
         await logAuditoria('cadastro_paciente', req.session.user.login, 
             `Paciente cadastrado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
@@ -442,39 +381,37 @@ app.post('/api/pacientes', requireAuth, async (req, res) => {
 // Rota para editar paciente
 app.put('/api/pacientes/:id', requireAuth, async (req, res) => {
     try {
-        const files = await fs.readdir('./data/pacientes');
-        let pacienteFile = null;
-        let paciente = null;
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
+        
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
-                const p = JSON.parse(data);
-                if (p.id == req.params.id) {
-                    pacienteFile = file;
-                    paciente = p;
-                    break;
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && paciente.id == req.params.id) {
+                // Verificar permissão de edição
+                const permissao = podeEditarPaciente(req.session.user, paciente);
+                if (!permissao.pode) {
+                    return res.status(403).json({ error: permissao.motivo });
                 }
+                
+                // Atualizar dados permitidos
+                const { nomeCompleto, cpf, dataNascimento, telefone, email, endereco } = req.body;
+                paciente.nomeCompleto = nomeCompleto;
+                paciente.cpf = cpf;
+                paciente.dataNascimento = dataNascimento;
+                paciente.telefone = telefone;
+                paciente.email = email;
+                paciente.endereco = endereco;
+                paciente.ultimaAtualizacao = new Date().toISOString();
+                
+                // Salvar no GitHub (mesmo arquivo)
+                await saveJsonToGithub(`pacientes/${file.name}`, paciente, 'Edição de paciente via API');
+                
+                await logAuditoria('edicao_paciente', req.session.user.login, `Paciente editado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
+                return res.json({ success: true, paciente });
             }
         }
-        if (!paciente) {
-            return res.status(404).json({ error: 'Paciente não encontrado' });
-        }
-        // Verificar permissão de edição
-        const permissao = podeEditarPaciente(req.session.user, paciente);
-        if (!permissao.pode) {
-            return res.status(403).json({ error: permissao.motivo });
-        }
-        // Atualizar dados permitidos
-        const { nomeCompleto, cpf, dataNascimento, telefone, email, endereco } = req.body;
-        paciente.nomeCompleto = nomeCompleto;
-        paciente.cpf = cpf;
-        paciente.dataNascimento = dataNascimento;
-        paciente.telefone = telefone;
-        paciente.email = email;
-        paciente.endereco = endereco;
-        await fs.writeFile(`./data/pacientes/${pacienteFile}`, JSON.stringify(paciente, null, 2));
-        await logAuditoria('edicao_paciente', req.session.user.login, `Paciente editado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
-        res.json({ success: true, paciente });
+        
+        res.status(404).json({ error: 'Paciente não encontrado' });
     } catch (error) {
         console.error('Erro ao editar paciente:', error);
         res.status(500).json({ error: 'Erro ao editar paciente' });
@@ -482,23 +419,20 @@ app.put('/api/pacientes/:id', requireAuth, async (req, res) => {
 });
 app.get('/api/pacientes/:id', requireAuth, async (req, res) => {
     try {
-        const files = await fs.readdir('./data/pacientes');
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
         
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
-                const paciente = JSON.parse(data);
-                
-                if (paciente.id == req.params.id) {
-                    // Verificar se o usuário pode ver este paciente
-                    if (!podeVerPaciente(req.session.user, paciente)) {
-                        return res.status(403).json({ 
-                            error: 'Acesso negado. Você só pode ver pacientes cadastrados por você.' 
-                        });
-                    }
-                    
-                    return res.json(paciente);
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && paciente.id == req.params.id) {
+                // Verificar se o usuário pode ver este paciente
+                if (!podeVerPaciente(req.session.user, paciente)) {
+                    return res.status(403).json({ 
+                        error: 'Acesso negado. Você só pode ver pacientes cadastrados por você.' 
+                    });
                 }
+                
+                return res.json(paciente);
             }
         }
         
@@ -513,7 +447,7 @@ app.get('/api/pacientes/:id', requireAuth, async (req, res) => {
 app.delete('/api/pacientes/:id', requireAuth, async (req, res) => {
     try {
         const { senha } = req.body;
-        const usuarios = JSON.parse(await fs.readFile('./data/usuarios.json', 'utf8'));
+        const usuarios = await fetchJsonFromGithub('usuarios.json');
         
         // Verificar senha do usuário logado
         const usuario = usuarios.find(u => u.id === req.session.user.id);
@@ -521,30 +455,28 @@ app.delete('/api/pacientes/:id', requireAuth, async (req, res) => {
             return res.status(401).json({ error: 'Senha incorreta' });
         }
         
-        const files = await fs.readdir('./data/pacientes');
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
         
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
-                const paciente = JSON.parse(data);
-                
-                if (paciente.id == req.params.id) {
-                    // Verificar permissões de edição
-                    const permissao = podeEditarPaciente(usuario, paciente);
-                    if (!permissao.pode) {
-                        return res.status(403).json({ error: permissao.motivo });
-                    }
-                    
-                    await fs.unlink(`./data/pacientes/${file}`);
-                    
-                    await logAuditoria('exclusao_paciente', req.session.user.login, 
-                        `Paciente excluído: ${paciente.nomeCompleto} (${permissao.motivo})`);
-                    
-                    return res.json({ 
-                        success: true, 
-                        message: 'Paciente excluído com sucesso' 
-                    });
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && paciente.id == req.params.id) {
+                // Verificar permissões de edição
+                const permissao = podeEditarPaciente(usuario, paciente);
+                if (!permissao.pode) {
+                    return res.status(403).json({ error: permissao.motivo });
                 }
+                
+                // Excluir arquivo do GitHub
+                await deleteFileFromGithub(`pacientes/${file.name}`, 'Exclusão de paciente via API');
+                
+                await logAuditoria('exclusao_paciente', req.session.user.login, 
+                    `Paciente excluído: ${paciente.nomeCompleto} (${permissao.motivo})`);
+                
+                return res.json({ 
+                    success: true, 
+                    message: 'Paciente excluído com sucesso' 
+                });
             }
         }
         
@@ -559,44 +491,43 @@ app.delete('/api/pacientes/:id', requireAuth, async (req, res) => {
 app.post('/api/pacientes/:id/atendimentos', requireAuth, async (req, res) => {
     try {
         const atendimentoData = req.body;
-        const files = await fs.readdir('./data/pacientes');
+        
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
         
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
-                const paciente = JSON.parse(data);
-                
-                if (paciente.id == req.params.id) {
-                    // Verificar se o usuário pode editar este paciente
-                    const permissao = podeEditarPaciente(req.session.user, paciente);
-                    if (!permissao.pode) {
-                        return res.status(403).json({ error: permissao.motivo });
-                    }
-                    
-                    const novoAtendimento = {
-                        id: Date.now(),
-                        titulo: atendimentoData.titulo,
-                        data: atendimentoData.data,
-                        horario: atendimentoData.horario,
-                        valor: atendimentoData.valor,
-                        observacoes: atendimentoData.observacoes,
-                        profissionalNome: req.session.user.nomeCompleto,
-                        profissionalRegistro: `${req.session.user.tipoRegistro}: ${req.session.user.numeroRegistro}`,
-                        profissionalEstado: req.session.user.estadoRegistro,
-                        profissionalId: req.session.user.id,
-                        criadoEm: new Date().toISOString()
-                    };
-                    
-                    paciente.atendimentos.push(novoAtendimento);
-                    paciente.ultimaAtualizacao = new Date().toISOString();
-                    
-                    await fs.writeFile(`./data/pacientes/${file}`, JSON.stringify(paciente, null, 2));
-                    
-                    await logAuditoria('novo_atendimento', req.session.user.login, 
-                        `Atendimento registrado para: ${paciente.nomeCompleto}`);
-                    
-                    return res.json({ success: true, atendimento: novoAtendimento });
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && paciente.id == req.params.id) {
+                // Verificar se o usuário pode editar este paciente
+                const permissao = podeEditarPaciente(req.session.user, paciente);
+                if (!permissao.pode) {
+                    return res.status(403).json({ error: permissao.motivo });
                 }
+                
+                const novoAtendimento = {
+                    id: Date.now(),
+                    titulo: atendimentoData.titulo,
+                    data: atendimentoData.data,
+                    horario: atendimentoData.horario,
+                    valor: atendimentoData.valor,
+                    observacoes: atendimentoData.observacoes,
+                    profissionalNome: req.session.user.nomeCompleto,
+                    profissionalRegistro: `${req.session.user.tipoRegistro}: ${req.session.user.numeroRegistro}`,
+                    profissionalEstado: req.session.user.estadoRegistro,
+                    profissionalId: req.session.user.id,
+                    criadoEm: new Date().toISOString()
+                };
+                
+                paciente.atendimentos.push(novoAtendimento);
+                paciente.ultimaAtualizacao = new Date().toISOString();
+                
+                // Salvar no GitHub (mesmo arquivo)
+                await saveJsonToGithub(`pacientes/${file.name}`, paciente, 'Novo atendimento via API');
+                
+                await logAuditoria('novo_atendimento', req.session.user.login, 
+                    `Atendimento registrado para: ${paciente.nomeCompleto}`);
+                
+                return res.json({ success: true, atendimento: novoAtendimento });
             }
         }
         
@@ -628,7 +559,8 @@ app.get('/api/tipos-registro', (req, res) => {
 // Rota para estatísticas do usuário
 app.get('/api/estatisticas', requireAuth, async (req, res) => {
     try {
-        const files = await fs.readdir('./data/pacientes');
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
         let totalPacientes = 0;
         let totalAtendimentos = 0;
         let pacientesRecentes = 0;
@@ -637,19 +569,14 @@ app.get('/api/estatisticas', requireAuth, async (req, res) => {
         umMesAtras.setMonth(umMesAtras.getMonth() - 1);
         
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const data = await fs.readFile(`./data/pacientes/${file}`, 'utf8');
-                const paciente = JSON.parse(data);
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && podeVerPaciente(req.session.user, paciente)) {
+                totalPacientes++;
+                totalAtendimentos += paciente.atendimentos ? paciente.atendimentos.length : 0;
                 
-                // Contar apenas pacientes que o usuário pode ver
-                if (podeVerPaciente(req.session.user, paciente)) {
-                    totalPacientes++;
-                    totalAtendimentos += paciente.atendimentos ? paciente.atendimentos.length : 0;
-                    
-                    // Pacientes cadastrados no último mês
-                    if (new Date(paciente.criadoEm) > umMesAtras) {
-                        pacientesRecentes++;
-                    }
+                // Pacientes cadastrados no último mês
+                if (new Date(paciente.criadoEm) > umMesAtras) {
+                    pacientesRecentes++;
                 }
             }
         }
@@ -803,12 +730,12 @@ function startServerLorsgordors(port) {
 }
 
 // Inicialização do sistema para lorsgordors
-ensureDirectories().then(() => {
+ensureGitHubInit().then(() => {
     const PORT = process.env.PORT || 3000;
     console.log('🚀 Inicializando Lizard Prontuário');
     console.log('👤 Usuário: lorsgordors');
     console.log('📅 Data: 2025-08-07 15:42:34 (UTC)');
-    console.log('📁 Verificando estrutura de dados...');
+    console.log('📁 Usando GitHub como banco de dados...');
     
     startServerLorsgordors(PORT);
 });

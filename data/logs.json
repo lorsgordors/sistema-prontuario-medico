@@ -1399,5 +1399,117 @@
     "detalhes": "Listou 3 paciente(s)",
     "ip": "lorsgordors-system",
     "dataHora": "17/08/2025, 23:03:34"
+  },
+  {
+    "timestamp": "2025-08-19T23:39:39.097Z",
+    "acao": "login",
+    "usuario": "admin",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:39:39"
+  },
+  {
+    "timestamp": "2025-08-19T23:39:39.150Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 3 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:39:39"
+  },
+  {
+    "timestamp": "2025-08-19T23:39:41.535Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 3 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:39:41"
+  },
+  {
+    "timestamp": "2025-08-19T23:40:27.387Z",
+    "acao": "cadastro_paciente",
+    "usuario": "admin",
+    "detalhes": "Paciente cadastrado: malu (ID: 1755646827385)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:40:27"
+  },
+  {
+    "timestamp": "2025-08-19T23:40:27.395Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 4 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:40:27"
+  },
+  {
+    "timestamp": "2025-08-19T23:40:27.410Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 4 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:40:27"
+  },
+  {
+    "timestamp": "2025-08-19T23:43:30.814Z",
+    "acao": "login",
+    "usuario": "admin",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:43:30"
+  },
+  {
+    "timestamp": "2025-08-19T23:43:30.836Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 4 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:43:30"
+  },
+  {
+    "timestamp": "2025-08-19T23:43:33.952Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 4 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:43:33"
+  },
+  {
+    "timestamp": "2025-08-19T23:43:37.743Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 4 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:43:37"
+  },
+  {
+    "timestamp": "2025-08-19T23:44:22.666Z",
+    "acao": "cadastro_paciente",
+    "usuario": "admin",
+    "detalhes": "Paciente cadastrado: matheus jojo (ID: 1755647062664)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:44:22"
+  },
+  {
+    "timestamp": "2025-08-19T23:44:22.678Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 5 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:44:22"
+  },
+  {
+    "timestamp": "2025-08-19T23:44:22.688Z",
+    "acao": "listagem_pacientes",
+    "usuario": "admin",
+    "detalhes": "Listou 5 paciente(s)",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:44:22"
+  },
+  {
+    "timestamp": "2025-08-19T23:52:08.037Z",
+    "acao": "login",
+    "usuario": "admin",
+    "detalhes": "Login realizado com sucesso",
+    "ip": "lorsgordors-system",
+    "dataHora": "19/08/2025, 20:52:08"
   }
 ]
