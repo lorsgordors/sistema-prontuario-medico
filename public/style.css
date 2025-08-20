@@ -32,6 +32,11 @@ body {
     background: var(--gradient-primary);
     min-height: 100vh;
     color: var(--primary-black);
+    /* Melhorias para mobile */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* === LOGO === */
@@ -154,6 +159,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    /* Melhorias para touch */
+    min-height: 44px; /* Tamanho mínimo recomendado para touch */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .btn-primary {
@@ -256,6 +268,14 @@ body {
     border-top: 1px solid var(--light-gray);
     padding: 0 20px;
     overflow-x: auto;
+    /* Melhorias para scroll horizontal mobile */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.main-nav::-webkit-scrollbar {
+    display: none; /* Chrome/Safari/Opera */
 }
 
 .main-nav {
@@ -429,20 +449,33 @@ body {
 .info-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding: 15px;
     background: var(--off-white);
     border-radius: 8px;
+    border: 1px solid var(--light-gray);
+    transition: all 0.3s ease;
 }
 
-.info-item label {
+.info-item:hover {
+    background: #f1f5f9;
+    border-color: var(--light-purple);
+}
+
+.info-item label,
+.info-item strong {
     font-weight: 600;
     color: var(--primary-purple);
+    min-width: 120px;
+    flex-shrink: 0;
 }
 
 .info-item span {
     color: var(--primary-black);
     font-weight: 500;
+    text-align: right;
+    word-wrap: break-word;
+    flex: 1;
 }
 
 /* === FORMULÁRIOS === */
@@ -850,56 +883,187 @@ body {
     }
 }
 
-/* === RESPONSIVIDADE === */
+/* === RESPONSIVIDADE MELHORADA === */
+
+/* Tablets e telas médias */
 @media (max-width: 768px) {
+    /* Header responsivo */
     .header-content {
         flex-direction: column;
         gap: 15px;
         text-align: center;
+        padding: 15px 0;
     }
     
+    .header-content h1 {
+        font-size: 1.3rem;
+    }
+    
+    .user-info {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    /* Navegação horizontal scrollável */
+    .main-nav {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding: 0 15px;
+    }
+    
+    .nav-btn {
+        flex-shrink: 0;
+        min-width: max-content;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+    
+    /* Conteúdo principal */
     .main-content {
         padding: 20px 15px;
     }
     
+    /* Forms e grids */
     .form-row {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
     
     .form-actions,
     .modal-actions {
         flex-direction: column;
+        gap: 12px;
     }
     
+    .form-actions .btn,
+    .modal-actions .btn {
+        width: 100%;
+    }
+    
+    /* Headers de conteúdo */
     .content-header,
     .detail-actions {
         flex-direction: column;
         align-items: stretch;
         text-align: center;
+        gap: 15px;
     }
     
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+    
+    .header-actions .btn {
+        width: 100%;
+    }
+    
+    /* Paciente específico */
     .paciente-header {
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
         text-align: center;
+    }
+    
+    .paciente-info {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    /* === DETALHES DO PACIENTE RESPONSIVO === */
+    .paciente-details {
+        gap: 20px;
+    }
+    
+    .paciente-info-card {
+        padding: 20px 15px;
+        margin: 0 -5px;
+    }
+    
+    .paciente-info-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    
+    /* === ATENDIMENTOS RESPONSIVO === */
+    .atendimentos-section {
+        padding: 20px 15px;
+        margin: 0 -5px;
+    }
+    
+    .atendimento-form {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .atendimento-item {
+        padding: 15px;
+        margin: 0 -2px;
+    }
+    
+    .atendimento-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .atendimento-data {
+        font-size: 0.95rem;
+    }
+    
+    .atendimento-valor {
+        align-self: flex-start;
+        font-size: 0.85rem;
+        padding: 6px 12px;
+    }
+    
+    .atendimento-obs {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-bottom: 8px;
+    }
+    
+    .atendimento-profissional {
+        font-size: 0.85rem;
+        text-align: right;
+        margin-top: 5px;
     }
     
     .section-header {
         flex-direction: column;
         align-items: stretch;
-    }
-    
-    .atendimento-header {
-        flex-direction: column;
+        text-align: center;
         gap: 10px;
     }
     
     .info-item {
         flex-direction: column;
-        gap: 5px;
+        gap: 8px;
         text-align: center;
     }
     
+    /* Cards de estatísticas */
+    .stats-cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .stat-number {
+        font-size: 1.6rem;
+    }
+    
+    /* Modais responsivos */
+    .modal-content {
+        margin: 15px;
+        padding: 25px 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    /* Mensagens */
     .message-container {
         left: 15px;
         right: 15px;
@@ -908,65 +1072,413 @@ body {
     
     .message {
         max-width: 100%;
+        padding: 12px 15px;
     }
     
-    .modal-content {
-        margin: 10px;
-        padding: 20px;
-    }
-    
+    /* Profile section */
     .profile-section {
         gap: 20px;
     }
     
+    .profile-card {
+        padding: 25px 20px;
+    }
+}
+
+/* Smartphones */
+@media (max-width: 480px) {
+    /* Login screen */
+    #loginScreen {
+        padding: 15px;
+    }
+    
+    .login-container {
+        padding: 25px 20px;
+        margin: 0;
+        border-radius: 15px;
+        max-width: none;
+        width: 100%;
+    }
+    
+    .login-header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 8px;
+    }
+    
+    .login-form {
+        gap: 18px;
+    }
+    
+    /* Header mobile */
+    .main-header {
+        padding: 0 15px;
+    }
+    
+    .header-content {
+        padding: 12px 0;
+    }
+    
+    .header-content h1 {
+        font-size: 1.2rem;
+    }
+    
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 8px;
+    }
+    
+    /* Navegação mobile */
+    .main-nav {
+        padding: 0 15px;
+    }
+    
+    .nav-btn {
+        padding: 12px 14px;
+        font-size: 0.85rem;
+        min-width: auto;
+    }
+    
+    /* Conteúdo mobile */
+    .main-content {
+        padding: 15px 12px;
+    }
+    
+    .content-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    /* Forms mobile */
+    .form-container,
+    .profile-card {
+        padding: 20px 15px;
+        border-radius: 12px;
+    }
+    
+    .form-group label {
+        font-size: 0.9rem;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 14px 12px;
+        font-size: 16px; /* Evita zoom no iOS */
+    }
+    
+    /* Buttons mobile */
+    .btn {
+        padding: 14px 20px;
+        font-size: 0.95rem;
+        border-radius: 10px;
+    }
+    
+    /* Cards mobile */
     .stats-cards {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .stat-card {
+        padding: 20px 15px;
+        border-radius: 12px;
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+    }
+    
+    /* === MOBILE - DETALHES DO PACIENTE === */
+    .paciente-details {
         gap: 15px;
+    }
+    
+    .paciente-info-card {
+        padding: 18px 12px;
+        margin: 0 -2px;
+        border-radius: 10px;
+    }
+    
+    .paciente-info-card h3 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+    
+    /* === MOBILE - ATENDIMENTOS === */
+    .atendimentos-section {
+        padding: 18px 12px;
+        margin: 0 -2px;
+        border-radius: 10px;
+    }
+    
+    .section-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .atendimento-form {
+        padding: 12px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+    }
+    
+    .atendimento-item {
+        padding: 12px;
+        margin: 0;
+        border-radius: 6px;
+        border-left-width: 3px;
+    }
+    
+    .atendimento-header {
+        margin-bottom: 8px;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    
+    .atendimento-data {
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+    
+    .atendimento-valor {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 15px;
+        align-self: flex-start;
+    }
+    
+    .atendimento-obs {
+        font-size: 0.85rem;
+        line-height: 1.3;
+        margin-bottom: 6px;
+        word-wrap: break-word;
+    }
+    
+    .atendimento-profissional {
+        font-size: 0.8rem;
+        margin-top: 3px;
+        padding-top: 5px;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    /* Tabelas mobile */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -12px;
+    }
+    
+    table {
+        min-width: 600px;
+        font-size: 0.9rem;
+    }
+    
+    /* Modais mobile */
+    .modal-content {
+        margin: 10px;
+        padding: 20px 15px;
+        border-radius: 12px;
+        max-height: 85vh;
+    }
+    
+    .modal-content h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    /* Listas mobile */
+    .usuarios-list,
+    .pacientes-list {
+        gap: 12px;
+    }
+    
+    .user-card,
+    .paciente-card {
+        padding: 15px 12px;
+    }
+    
+    /* Info items mobile */
+    .info-item {
+        flex-direction: column;
+        gap: 8px;
+        text-align: left;
+        padding: 12px;
+        border-radius: 8px;
+        align-items: flex-start;
+    }
+    
+    .info-item strong,
+    .info-item label {
+        font-size: 0.85rem;
+        color: var(--primary-purple);
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+    
+    .info-item span {
+        font-size: 0.9rem;
+        color: var(--primary-black);
+        font-weight: 400;
+        word-wrap: break-word;
+        width: 100%;
+    }
+    
+    /* Messages mobile */
+    .message {
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+    
+    /* User info badge */
+    .info-badge {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Smartphones muito pequenos */
+@media (max-width: 360px) {
+    .login-container {
+        padding: 20px 15px;
+    }
+    
+    .main-content {
+        padding: 15px 10px;
+    }
+    
+    .form-container,
+    .profile-card {
+        padding: 18px 12px;
+    }
+    
+    .modal-content {
+        margin: 8px;
+        padding: 18px 12px;
+    }
+    
+    .nav-btn {
+        padding: 10px 12px;
+        font-size: 0.8rem;
     }
     
     .stat-number {
         font-size: 1.5rem;
     }
-    
-    .header-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
 }
 
-@media (max-width: 480px) {
+/* Landscape mobile */
+@media (max-height: 500px) and (orientation: landscape) {
     .login-container {
-        padding: 25px;
-        margin: 10px;
+        max-width: 600px;
+        padding: 20px 30px;
     }
     
-    .main-nav {
-        padding: 0 10px;
+    .modal-content {
+        max-height: 80vh;
+        margin: 20px auto;
+        max-width: 600px;
     }
     
-    .nav-btn {
-        padding: 12px 15px;
-        font-size: 0.9rem;
-    }
-    
-    .form-container,
-    .profile-card {
-        padding: 20px;
-    }
-    
-    .paciente-info {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats-cards {
-        grid-template-columns: 1fr;
+    #loginScreen {
+        padding: 10px;
     }
 }
 
-/* Utilitários */
+/* Utilitários e Melhorias Mobile */
 .text-center { text-align: center; }
 .mb-20 { margin-bottom: 20px; }
 .mt-20 { margin-top: 20px; }
 .text-danger { color: #e53e3e; }
 .text-success { color: #38a169; }
 .text-warning { color: #d69e2e; }
+
+/* === MELHORIAS PARA TOQUE === */
+button, .btn, .nav-btn, .user-card, .paciente-card {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* === SCROLL SUAVE === */
+* {
+    scroll-behavior: smooth;
+}
+
+/* === TABELAS RESPONSIVAS === */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(26, 26, 26, 0.1);
+}
+
+.table-responsive table {
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+.table-responsive th,
+.table-responsive td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--light-gray);
+    white-space: nowrap;
+}
+
+.table-responsive th {
+    background: var(--off-white);
+    font-weight: 600;
+    color: var(--primary-purple);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* === LOADING STATES === */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--light-purple);
+    border-top: 2px solid var(--primary-purple);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* === FOCUS STATES MELHORADOS === */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus,
+.btn:focus {
+    outline: 2px solid var(--secondary-purple);
+    outline-offset: 2px;
+}
+
+/* === ANIMATIONS SUAVES === */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
