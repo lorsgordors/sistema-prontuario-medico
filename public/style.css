@@ -36,18 +36,21 @@ body {
 
 /* === LOGO === */
 .logo-icon {
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     vertical-align: middle;
-    margin-right: 10px;
-    box-shadow: 0 2px 8px rgba(26, 26, 26, 0.3);
+    margin-right: 12px;
+    box-shadow: 0 3px 12px rgba(26, 26, 26, 0.4);
     transition: all 0.3s ease;
+    padding: 3px;
+    box-sizing: border-box;
+    object-fit: contain;
 }
 
 .logo-icon:hover {
     transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
 }
 
 .screen {

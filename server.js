@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const express = require('express');
 const { saveJsonToGithub, fetchJsonFromGithub, listFilesFromGithub, deleteFileFromGithub } = require('./github-db');
+const { encryptPatientData, decryptPatientData, encryptUserData, decryptUserData } = require('./crypto-utils');
 const fs = require('fs').promises;
 const path = require('path');
 const session = require('express-session');
@@ -165,7 +166,9 @@ app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
 // Rota para listar todos os usuários (apenas admin)
 app.get('/api/usuarios', requireAdmin, async (req, res) => {
     try {
-        const usuarios = await fetchJsonFromGithub('usuarios.json');
+        const usuariosCriptografados = await fetchJsonFromGithub('usuarios.json');
+        // Descriptografar usuários antes de enviar
+        const usuarios = usuariosCriptografados.map(decryptUserData);
         res.json(usuarios);
     } catch (error) {
         console.error('Erro ao listar usuários:', error);
@@ -175,7 +178,10 @@ app.get('/api/usuarios', requireAdmin, async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { login, senha } = req.body;
-        const usuarios = await fetchJsonFromGithub('usuarios.json');
+        const usuariosCriptografados = await fetchJsonFromGithub('usuarios.json');
+        
+        // Descriptografar usuários para verificar login
+        const usuarios = usuariosCriptografados.map(decryptUserData);
         
         const usuario = usuarios.find(u => 
                 u.login === login && u.senha === senha
@@ -303,8 +309,15 @@ app.post('/api/registrar-usuario', async (req, res) => {
             criadoEm: new Date().toISOString(),
             criadoPor: admin.login
         };
-        usuarios.push(novoUsuario);
-        await saveJsonToGithub('usuarios.json', usuarios, 'Registro de novo usuário via API');
+        
+        // Criptografar dados sensíveis do usuário
+        const usuarioCriptografado = encryptUserData(novoUsuario);
+        
+        // Adicionar usuário criptografado à lista
+        const usuariosComNovoUsuario = usuarios.slice(); // copia lista
+        usuariosComNovoUsuario.push(usuarioCriptografado);
+        
+        await saveJsonToGithub('usuarios.json', usuariosComNovoUsuario, 'Registro de novo usuário via API');
         await logAuditoria('registro_usuario', admin.login, `Novo usuário registrado: ${login} (${nomeCompleto})`);
         res.json({ success: true });
     } catch (error) {
@@ -321,8 +334,11 @@ app.get('/api/pacientes', requireAuth, async (req, res) => {
         const pacientesFiltrados = [];
         
         for (const file of files) {
-            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
-            if (paciente && podeVerPaciente(req.session.user, paciente)) {
+            const pacienteCriptografado = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (pacienteCriptografado && podeVerPaciente(req.session.user, pacienteCriptografado)) {
+                // Descriptografar dados antes de enviar
+                const paciente = decryptPatientData(pacienteCriptografado);
+                
                 if (req.session.user.tipo === 'Administrador') {
                     paciente.infoAdicional = {
                         criadoPor: paciente.criadoPor,
@@ -364,8 +380,11 @@ app.post('/api/pacientes', requireAuth, async (req, res) => {
             ultimaAtualizacao: new Date().toISOString()
         };
         
+        // Criptografar dados sensíveis antes de salvar
+        const pacienteCriptografado = encryptPatientData(paciente);
+        
         // Salvar paciente em arquivo individual
-        await saveJsonToGithub(`pacientes/${fileName}`, paciente, 'Cadastro de paciente via API');
+        await saveJsonToGithub(`pacientes/${fileName}`, pacienteCriptografado, 'Cadastro de paciente via API');
         
         await logAuditoria('cadastro_paciente', req.session.user.login, 
             `Paciente cadastrado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
@@ -385,8 +404,11 @@ app.put('/api/pacientes/:id', requireAuth, async (req, res) => {
         const files = await listFilesFromGithub('pacientes');
         
         for (const file of files) {
-            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
-            if (paciente && paciente.id == req.params.id) {
+            const pacienteCriptografado = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (pacienteCriptografado && pacienteCriptografado.id == req.params.id) {
+                // Descriptografar para verificar permissão
+                const paciente = decryptPatientData(pacienteCriptografado);
+                
                 // Verificar permissão de edição
                 const permissao = podeEditarPaciente(req.session.user, paciente);
                 if (!permissao.pode) {
@@ -403,8 +425,11 @@ app.put('/api/pacientes/:id', requireAuth, async (req, res) => {
                 paciente.endereco = endereco;
                 paciente.ultimaAtualizacao = new Date().toISOString();
                 
+                // Criptografar antes de salvar
+                const pacienteAtualizado = encryptPatientData(paciente);
+                
                 // Salvar no GitHub (mesmo arquivo)
-                await saveJsonToGithub(`pacientes/${file.name}`, paciente, 'Edição de paciente via API');
+                await saveJsonToGithub(`pacientes/${file.name}`, pacienteAtualizado, 'Edição de paciente via API');
                 
                 await logAuditoria('edicao_paciente', req.session.user.login, `Paciente editado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
                 return res.json({ success: true, paciente });
@@ -423,15 +448,17 @@ app.get('/api/pacientes/:id', requireAuth, async (req, res) => {
         const files = await listFilesFromGithub('pacientes');
         
         for (const file of files) {
-            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
-            if (paciente && paciente.id == req.params.id) {
+            const pacienteCriptografado = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (pacienteCriptografado && pacienteCriptografado.id == req.params.id) {
                 // Verificar se o usuário pode ver este paciente
-                if (!podeVerPaciente(req.session.user, paciente)) {
+                if (!podeVerPaciente(req.session.user, pacienteCriptografado)) {
                     return res.status(403).json({ 
                         error: 'Acesso negado. Você só pode ver pacientes cadastrados por você.' 
                     });
                 }
                 
+                // Descriptografar dados antes de enviar
+                const paciente = decryptPatientData(pacienteCriptografado);
                 return res.json(paciente);
             }
         }
