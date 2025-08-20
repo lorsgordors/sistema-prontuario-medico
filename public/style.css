@@ -34,6 +34,22 @@ body {
     color: var(--primary-black);
 }
 
+/* === LOGO === */
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 10px;
+    box-shadow: 0 2px 8px rgba(26, 26, 26, 0.3);
+    transition: all 0.3s ease;
+}
+
+.logo-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
 .screen {
     min-height: 100vh;
 }
