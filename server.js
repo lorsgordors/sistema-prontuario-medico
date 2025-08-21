@@ -30,22 +30,51 @@ function validarForcaSenha(senha) {
 }
 
 // Função para log de auditoria
-async function logAuditoria(acao, usuario, detalhes) {
+async function logAuditoria(acao, usuario, detalhes, req = null) {
     try {
         let logs = await fetchJsonFromGithub('logs.json');
+        
+        // Extrair informações do dispositivo/navegador
+        const userAgent = req ? req.get('User-Agent') || '' : '';
+        const ip = req ? req.ip || req.connection.remoteAddress || 'desconhecido' : 'sistema';
+        
+        // Detectar navegador
+        let navegador = 'Desconhecido';
+        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) navegador = 'Chrome';
+        else if (userAgent.includes('Firefox')) navegador = 'Firefox';
+        else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) navegador = 'Safari';
+        else if (userAgent.includes('Edg')) navegador = 'Microsoft Edge';
+        else if (userAgent.includes('Opera') || userAgent.includes('OPR')) navegador = 'Opera';
+        
+        // Detectar sistema operacional
+        let so = 'Desconhecido';
+        if (userAgent.includes('Windows NT')) so = 'Windows';
+        else if (userAgent.includes('Mac OS X')) so = 'macOS';
+        else if (userAgent.includes('Linux')) so = 'Linux';
+        else if (userAgent.includes('Android')) so = 'Android';
+        else if (userAgent.includes('iOS')) so = 'iOS';
+        
+        // Detectar tipo de dispositivo
+        let dispositivo = 'Desktop';
+        if (userAgent.includes('Mobile')) dispositivo = 'Mobile';
+        else if (userAgent.includes('Tablet')) dispositivo = 'Tablet';
         
         logs.push({
             timestamp: new Date().toISOString(),
             acao,
             usuario,
             detalhes,
-            ip: 'lorsgordors-system',
+            ip: ip === '::1' ? 'localhost' : ip,
+            navegador,
+            so,
+            dispositivo,
+            userAgent: userAgent ? userAgent.substring(0, 200) : '', // Limitar tamanho
             dataHora: new Date().toLocaleString('pt-BR')
         });
         
-        // Manter apenas os últimos 1000 logs
-        if (logs.length > 1000) {
-            logs = logs.slice(-1000);
+        // Manter apenas os últimos 5000 logs como backup (sem limpeza automática)
+        if (logs.length > 5000) {
+            logs = logs.slice(-5000);
         }
         
         await saveJsonToGithub('logs.json', logs, 'Novo log de auditoria');
@@ -156,7 +185,7 @@ app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
             usuarios[usuarioIndex].senha = novaSenha;
         }
         await saveJsonToGithub('usuarios.json', usuarios, 'Editando usuário via API');
-        await logAuditoria('edicao_usuario', req.session.user.login, `Usuário editado: ${usuarios[usuarioIndex].login}`);
+        await logAuditoria('edicao_usuario', req.session.user.login, `Usuário editado: ${usuarios[usuarioIndex].login}`, req);
         res.json({ success: true, usuario: usuarios[usuarioIndex] });
     } catch (error) {
         console.error('Erro ao editar usuário:', error);
@@ -198,10 +227,10 @@ app.post('/api/login', async (req, res) => {
                 tipo: usuario.tipo
             };
             
-            await logAuditoria('login', usuario.login, 'Login realizado com sucesso');
+            await logAuditoria('login', usuario.login, 'Login realizado com sucesso', req);
             res.json({ success: true, user: req.session.user });
         } else {
-            await logAuditoria('login_falhou', login || 'desconhecido', 'Tentativa de login com credenciais inválidas');
+            await logAuditoria('login_falhou', login || 'desconhecido', 'Tentativa de login com credenciais inválidas', req);
             res.status(401).json({ error: 'Credenciais inválidas' });
         }
     } catch (error) {
@@ -211,7 +240,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/logout', requireAuth, async (req, res) => {
-    await logAuditoria('logout', req.session.user.login, 'Logout realizado');
+    await logAuditoria('logout', req.session.user.login, 'Logout realizado', req);
     req.session.destroy();
     res.json({ success: true });
 });
@@ -247,7 +276,7 @@ app.post('/api/alterar-senha', requireAuth, async (req, res) => {
         usuarios[usuarioIndex].senha = novaSenha;
         await saveJsonToGithub('usuarios.json', usuarios, 'Alteração de senha via API');
         
-        await logAuditoria('alteracao_senha', req.session.user.login, 'Senha alterada com sucesso');
+        await logAuditoria('alteracao_senha', req.session.user.login, 'Senha alterada com sucesso', req);
         
         // Destruir sessão para forçar novo login
         req.session.destroy();
@@ -281,7 +310,7 @@ app.post('/api/registrar-usuario', async (req, res) => {
         
         // Verificar senha do admin
         if (admin.senha !== senhaAdmin) {
-            await logAuditoria('registro_usuario_falhou', admin.login, `Tentativa de registro com senha admin incorreta para usuário: ${login}`);
+            await logAuditoria('registro_usuario_falhou', admin.login, `Tentativa de registro com senha admin incorreta para usuário: ${login}`, req);
             return res.status(401).json({ error: 'Senha do administrador incorreta' });
         }
         
@@ -318,7 +347,7 @@ app.post('/api/registrar-usuario', async (req, res) => {
         usuariosComNovoUsuario.push(usuarioCriptografado);
         
         await saveJsonToGithub('usuarios.json', usuariosComNovoUsuario, 'Registro de novo usuário via API');
-        await logAuditoria('registro_usuario', admin.login, `Novo usuário registrado: ${login} (${nomeCompleto})`);
+        await logAuditoria('registro_usuario', admin.login, `Novo usuário registrado: ${login} (${nomeCompleto})`, req);
         res.json({ success: true });
     } catch (error) {
         console.error('Erro ao registrar usuário:', error);
@@ -351,7 +380,7 @@ app.get('/api/pacientes', requireAuth, async (req, res) => {
         
         // Log de auditoria
         await logAuditoria('listagem_pacientes', req.session.user.login, 
-            `Listou ${pacientesFiltrados.length} paciente(s)`);
+            `Listou ${pacientesFiltrados.length} paciente(s)`, req);
         
         res.json(pacientesFiltrados);
     } catch (error) {
@@ -387,7 +416,7 @@ app.post('/api/pacientes', requireAuth, async (req, res) => {
         await saveJsonToGithub(`pacientes/${fileName}`, pacienteCriptografado, 'Cadastro de paciente via API');
         
         await logAuditoria('cadastro_paciente', req.session.user.login, 
-            `Paciente cadastrado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
+            `Paciente cadastrado: ${paciente.nomeCompleto} (ID: ${paciente.id})`, req);
         
         res.json({ success: true, paciente });
     } catch (error) {
@@ -431,7 +460,7 @@ app.put('/api/pacientes/:id', requireAuth, async (req, res) => {
                 // Salvar no GitHub (mesmo arquivo)
                 await saveJsonToGithub(`pacientes/${file.name}`, pacienteAtualizado, 'Edição de paciente via API');
                 
-                await logAuditoria('edicao_paciente', req.session.user.login, `Paciente editado: ${paciente.nomeCompleto} (ID: ${paciente.id})`);
+                await logAuditoria('edicao_paciente', req.session.user.login, `Paciente editado: ${paciente.nomeCompleto} (ID: ${paciente.id})`, req);
                 return res.json({ success: true, paciente });
             }
         }
@@ -498,7 +527,7 @@ app.delete('/api/pacientes/:id', requireAuth, async (req, res) => {
                 await deleteFileFromGithub(`pacientes/${file.name}`, 'Exclusão de paciente via API');
                 
                 await logAuditoria('exclusao_paciente', req.session.user.login, 
-                    `Paciente excluído: ${paciente.nomeCompleto} (${permissao.motivo})`);
+                    `Paciente excluído: ${paciente.nomeCompleto} (${permissao.motivo})`, req);
                 
                 return res.json({ 
                     success: true, 
@@ -552,7 +581,7 @@ app.post('/api/pacientes/:id/atendimentos', requireAuth, async (req, res) => {
                 await saveJsonToGithub(`pacientes/${file.name}`, paciente, 'Novo atendimento via API');
                 
                 await logAuditoria('novo_atendimento', req.session.user.login, 
-                    `Atendimento registrado para: ${paciente.nomeCompleto}`);
+                    `Atendimento registrado para: ${paciente.nomeCompleto}`, req);
                 
                 return res.json({ success: true, atendimento: novoAtendimento });
             }
@@ -609,7 +638,7 @@ app.delete('/api/pacientes/:id/atendimentos/:atendimentoId', requireAuth, async 
                 await saveJsonToGithub(`pacientes/${file.name}`, paciente, 'Atendimento excluído via API');
                 
                 await logAuditoria('excluir_atendimento', req.session.user.login, 
-                    `Atendimento excluído do paciente: ${paciente.nomeCompleto} - Título: ${atendimentoRemovido.titulo || 'Sem título'}`);
+                    `Atendimento excluído do paciente: ${paciente.nomeCompleto} - Título: ${atendimentoRemovido.titulo || 'Sem título'}`, req);
                 
                 return res.json({ 
                     success: true, 
@@ -681,6 +710,98 @@ app.get('/api/estatisticas', requireAuth, async (req, res) => {
     }
 });
 
+// === ROTAS DE LOGS (ADMIN) ===
+app.get('/api/logs/stats', requireAdmin, async (req, res) => {
+    try {
+        let logs = await fetchJsonFromGithub('logs.json');
+        const agora = new Date();
+        const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+        const seteDiasAtras = new Date(agora.getTime() - (7 * 24 * 60 * 60 * 1000));
+        
+        const logsHoje = logs.filter(log => {
+            const logDate = new Date(log.timestamp);
+            return logDate >= hoje;
+        }).length;
+        
+        const logsAntigos = logs.filter(log => {
+            const logDate = new Date(log.timestamp);
+            return logDate < seteDiasAtras;
+        }).length;
+        
+        res.json({
+            total: logs.length,
+            hoje: logsHoje,
+            antigos: logsAntigos
+        });
+    } catch (error) {
+        console.error('Erro ao buscar estatísticas de logs:', error);
+        res.status(500).json({ error: 'Erro ao buscar estatísticas de logs' });
+    }
+});
+
+app.get('/api/logs', requireAdmin, async (req, res) => {
+    try {
+        let logs = await fetchJsonFromGithub('logs.json');
+        // Ordenar por data mais recente primeiro
+        logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        // Limitar a 500 logs mais recentes para performance
+        logs = logs.slice(0, 500);
+        res.json(logs);
+    } catch (error) {
+        console.error('Erro ao buscar logs:', error);
+        res.status(500).json({ error: 'Erro ao buscar logs' });
+    }
+});
+
+app.delete('/api/logs/limpar', requireAdmin, async (req, res) => {
+    try {
+        const { periodo } = req.body;
+        let logs = await fetchJsonFromGithub('logs.json');
+        const logsOriginais = logs.length;
+        
+        const agora = new Date();
+        let dataCorte;
+        
+        switch (periodo) {
+            case '1': // 24 horas
+                dataCorte = new Date(agora.getTime() - (24 * 60 * 60 * 1000));
+                break;
+            case '7': // 7 dias
+                dataCorte = new Date(agora.getTime() - (7 * 24 * 60 * 60 * 1000));
+                break;
+            case '30': // 30 dias
+                dataCorte = new Date(agora.getTime() - (30 * 24 * 60 * 60 * 1000));
+                break;
+            case 'all': // todos
+                logs = [];
+                break;
+            default:
+                return res.status(400).json({ error: 'Período inválido' });
+        }
+        
+        if (periodo !== 'all') {
+            logs = logs.filter(log => {
+                const logDate = new Date(log.timestamp);
+                return logDate >= dataCorte;
+            });
+        }
+        
+        await saveJsonToGithub('logs.json', logs, `Limpeza manual de logs - período: ${periodo === 'all' ? 'todos' : periodo + ' dias'}`);
+        
+        // Log da ação de limpeza
+        await logAuditoria('limpeza_logs', req.session.user.login, 
+            `Removeu ${logsOriginais - logs.length} log(s) - período: ${periodo === 'all' ? 'todos' : periodo + ' dias'}`, req);
+        
+        res.json({ 
+            removidos: logsOriginais - logs.length,
+            restantes: logs.length 
+        });
+    } catch (error) {
+        console.error('Erro ao limpar logs:', error);
+        res.status(500).json({ error: 'Erro ao limpar logs' });
+    }
+});
+
 // Função para iniciar servidor com configuração robusta - LORSGORDORS
 function startServerLorsgordors(port) {
     console.log('🔧 Configurando servidor para lorsgordors...');
@@ -747,6 +868,7 @@ function startServerLorsgordors(port) {
         console.log('📊 STATUS DO SISTEMA:');
         console.log('   ✅ Base de dados inicializada');
         console.log('   ✅ Logs de auditoria ativos');
+        console.log('   ✅ Limpeza automática de logs (7 dias)');
         console.log('   ✅ Sessões configuradas');
         console.log('   ✅ Firewall deve estar liberado');
         console.log('');

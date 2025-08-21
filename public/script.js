@@ -265,8 +265,35 @@ class ProntuarioApp {
                     this.hideRegistrarUsuarioModal();
                 } else if (e.target.id === 'excluirPacienteModal') {
                     this.hideExcluirPacienteModal();
+                } else if (e.target.id === 'limparLogsModal') {
+                    this.hideLimparLogsModal();
                 }
             }
+        });
+
+        // Event listeners para aba de logs
+        document.getElementById('visualizarLogsBtn').addEventListener('click', () => {
+            this.toggleLogsDisplay();
+        });
+
+        document.getElementById('limparLogsBtn').addEventListener('click', () => {
+            this.showLimparLogsModal();
+        });
+
+        document.getElementById('filtroLogs').addEventListener('input', (e) => {
+            this.filterLogs(e.target.value);
+        });
+
+        document.getElementById('filtroTipo').addEventListener('change', (e) => {
+            this.filterLogsByType(e.target.value);
+        });
+
+        document.getElementById('confirmarLimpezaBtn').addEventListener('click', () => {
+            this.handleLimparLogs();
+        });
+
+        document.getElementById('cancelarLimpezaBtn').addEventListener('click', () => {
+            this.hideLimparLogsModal();
         });
     }
     
@@ -573,10 +600,13 @@ class ProntuarioApp {
         
         // Mostrar aba de usuários se for admin
         const usuariosTabBtn = document.getElementById('usuariosTabBtn');
+        const logsTabBtn = document.getElementById('logsTabBtn');
         if (this.currentUser.tipo === 'Administrador') {
             usuariosTabBtn.style.display = '';
+            logsTabBtn.style.display = '';
         } else {
             usuariosTabBtn.style.display = 'none';
+            logsTabBtn.style.display = 'none';
         }
         // Carregar dados
         this.loadEstatisticas();
@@ -629,6 +659,8 @@ class ProntuarioApp {
             this.loadEstatisticas();
         } else if (tabName === 'usuarios' && this.currentUser.tipo === 'Administrador') {
             this.loadUsuarios();
+        } else if (tabName === 'logs' && this.currentUser.tipo === 'Administrador') {
+            this.loadLogStats();
         }
     }
 
@@ -1059,6 +1091,144 @@ class ProntuarioApp {
         setTimeout(() => {
             messageDiv.remove();
         }, 5000);
+    }
+
+    // === FUNÇÕES DE GERENCIAMENTO DE LOGS ===
+    async loadLogStats() {
+        try {
+            const response = await fetch('/api/logs/stats');
+            if (response.ok) {
+                const stats = await response.json();
+                document.getElementById('totalLogs').textContent = stats.total;
+                document.getElementById('logsHoje').textContent = stats.hoje;
+                document.getElementById('logsAntigos').textContent = stats.antigos;
+            } else {
+                this.showMessage('Erro ao carregar estatísticas de logs', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar stats dos logs:', error);
+            this.showMessage('Erro ao carregar estatísticas de logs', 'error');
+        }
+    }
+
+    async loadLogs() {
+        try {
+            const response = await fetch('/api/logs');
+            if (response.ok) {
+                const logs = await response.json();
+                this.allLogs = logs;
+                this.renderLogs(logs);
+            } else {
+                this.showMessage('Erro ao carregar logs', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar logs:', error);
+            this.showMessage('Erro ao carregar logs', 'error');
+        }
+    }
+
+    toggleLogsDisplay() {
+        const logsDisplay = document.getElementById('logsDisplay');
+        const btn = document.getElementById('visualizarLogsBtn');
+        
+        if (logsDisplay.classList.contains('hidden')) {
+            logsDisplay.classList.remove('hidden');
+            btn.textContent = '👁️ Ocultar Logs';
+            this.loadLogs();
+        } else {
+            logsDisplay.classList.add('hidden');
+            btn.textContent = '👁️ Visualizar Logs';
+        }
+    }
+
+    renderLogs(logs) {
+        const logsList = document.getElementById('logsList');
+        
+        if (!logs || logs.length === 0) {
+            logsList.innerHTML = '<div class="empty-state">Nenhum log encontrado</div>';
+            return;
+        }
+
+        const logsHtml = logs.map(log => `
+            <div class="log-item">
+                <div class="log-header">
+                    <span class="log-type ${log.acao}">${log.acao.toUpperCase()}</span>
+                    <span class="log-timestamp">${new Date(log.timestamp).toLocaleString('pt-BR')}</span>
+                </div>
+                <div class="log-usuario">👤 ${log.usuario}</div>
+                <div class="log-acao">${log.detalhes}</div>
+                <div class="log-tech-info">
+                    <div class="log-device-info">
+                        🌐 <strong>IP:</strong> ${log.ip || 'N/A'} | 
+                        💻 <strong>Dispositivo:</strong> ${log.dispositivo || 'N/A'} | 
+                        🌍 <strong>Navegador:</strong> ${log.navegador || 'N/A'} | 
+                        🖥️ <strong>SO:</strong> ${log.so || 'N/A'}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        logsList.innerHTML = logsHtml;
+    }
+
+    filterLogs(searchTerm) {
+        if (!this.allLogs) return;
+        
+        const filteredLogs = this.allLogs.filter(log => 
+            log.usuario.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.acao.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (log.detalhes && log.detalhes.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        
+        this.renderLogs(filteredLogs);
+    }
+
+    filterLogsByType(acao) {
+        if (!this.allLogs) return;
+        
+        const filteredLogs = acao ? 
+            this.allLogs.filter(log => log.acao === acao) : 
+            this.allLogs;
+            
+        this.renderLogs(filteredLogs);
+    }
+
+    showLimparLogsModal() {
+        document.getElementById('limparLogsModal').classList.remove('hidden');
+    }
+
+    hideLimparLogsModal() {
+        document.getElementById('limparLogsModal').classList.add('hidden');
+    }
+
+    async handleLimparLogs() {
+        const selectedPeriodo = document.querySelector('input[name="periodo"]:checked').value;
+        
+        try {
+            const response = await fetch('/api/logs/limpar', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ periodo: selectedPeriodo })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                this.showMessage(`Limpeza concluída: ${result.removidos} log(s) removido(s)`, 'success');
+                this.hideLimparLogsModal();
+                this.loadLogStats();
+                if (!document.getElementById('logsDisplay').classList.contains('hidden')) {
+                    this.loadLogs();
+                }
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error || 'Erro ao limpar logs', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao limpar logs:', error);
+            this.showMessage('Erro ao limpar logs', 'error');
+        }
     }
 }
 

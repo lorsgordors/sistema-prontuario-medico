@@ -62,10 +62,86 @@
             <button class="nav-btn" data-tab="pacientes">👥 Pacientes</button>
             <button class="nav-btn" data-tab="cadastroPaciente">➕ Novo Paciente</button>
             <button class="nav-btn" data-tab="usuarios" id="usuariosTabBtn" style="display:none">👥 Usuários</button>
+            <button class="nav-btn" data-tab="logs" id="logsTabBtn" style="display:none">📋 Logs</button>
         </nav>
 
         <!-- Conteúdo Principal -->
         <main class="main-content">
+            <!-- Aba Logs (apenas admin) -->
+            <section id="logs" class="tab-content">
+                <div class="content-header">
+                    <h2>📋 Gerenciar Logs do Sistema</h2>
+                    <div class="log-controls">
+                        <button id="visualizarLogsBtn" class="btn btn-secondary">👁️ Visualizar Logs</button>
+                        <button id="limparLogsBtn" class="btn btn-warning">🗑️ Limpar Logs</button>
+                    </div>
+                </div>
+                <div class="log-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalLogs">-</div>
+                        <div class="stat-label">Total de Logs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="logsHoje">-</div>
+                        <div class="stat-label">Logs de Hoje</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="logsAntigos">-</div>
+                        <div class="stat-label">Logs > 7 dias</div>
+                    </div>
+                </div>
+                <div id="logsDisplay" class="logs-display hidden">
+                    <div class="logs-filter">
+                        <input type="text" id="filtroLogs" placeholder="Filtrar logs..." class="form-control">
+                        <select id="filtroTipo" class="form-control">
+                            <option value="">Todos os tipos</option>
+                            <option value="login">Login</option>
+                            <option value="logout">Logout</option>
+                            <option value="login_falhou">Login Falhado</option>
+                            <option value="cadastro_paciente">Cadastro Paciente</option>
+                            <option value="edicao_paciente">Edição Paciente</option>
+                            <option value="exclusao_paciente">Exclusão Paciente</option>
+                            <option value="novo_atendimento">Novo Atendimento</option>
+                            <option value="excluir_atendimento">Excluir Atendimento</option>
+                            <option value="registro_usuario">Registro Usuário</option>
+                            <option value="edicao_usuario">Edição Usuário</option>
+                            <option value="alteracao_senha">Alteração Senha</option>
+                            <option value="limpeza_logs">Limpeza Logs</option>
+                        </select>
+                    </div>
+                    <div id="logsList" class="logs-list"></div>
+                </div>
+                <!-- Modal de limpeza -->
+                <div id="limparLogsModal" class="modal hidden">
+                    <div class="modal-content" style="max-width:400px;">
+                        <h3>🗑️ Limpar Logs do Sistema</h3>
+                        <p>Selecione o período para limpeza:</p>
+                        <div class="periodo-options">
+                            <label>
+                                <input type="radio" name="periodo" value="1" checked>
+                                Últimas 24 horas
+                            </label>
+                            <label>
+                                <input type="radio" name="periodo" value="7">
+                                Últimos 7 dias
+                            </label>
+                            <label>
+                                <input type="radio" name="periodo" value="30">
+                                Últimos 30 dias
+                            </label>
+                            <label>
+                                <input type="radio" name="periodo" value="all">
+                                Todos os logs
+                            </label>
+                        </div>
+                        <div class="modal-actions">
+                            <button id="confirmarLimpezaBtn" class="btn btn-danger">Confirmar Limpeza</button>
+                            <button id="cancelarLimpezaBtn" class="btn btn-secondary">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Aba Usuários (apenas admin) -->
             <section id="usuarios" class="tab-content">
                 <div class="content-header">
