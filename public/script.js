@@ -9,6 +9,9 @@ class ProntuarioApp {
         document.getElementById('editarPacienteTelefone').value = paciente.telefone || '';
         document.getElementById('editarPacienteEmail').value = paciente.email || '';
         document.getElementById('editarPacienteEndereco').value = paciente.endereco || '';
+        document.getElementById('editarPacienteAlergias').value = paciente.alergias || '';
+        document.getElementById('editarPacienteMedicamentos').value = paciente.medicamentos || '';
+        document.getElementById('editarPacienteComorbidades').value = paciente.comorbidades || '';
         document.getElementById('editarPacienteModal').classList.remove('hidden');
     }
 
@@ -91,11 +94,14 @@ class ProntuarioApp {
             const telefone = form.telefone.value;
             const email = form.email.value;
             const endereco = form.endereco.value;
+            const alergias = form.alergias.value;
+            const medicamentos = form.medicamentos.value;
+            const comorbidades = form.comorbidades.value;
             try {
                 const response = await fetch(`/api/pacientes/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nomeCompleto, cpf, dataNascimento, telefone, email, endereco })
+                    body: JSON.stringify({ nomeCompleto, cpf, dataNascimento, telefone, email, endereco, alergias, medicamentos, comorbidades })
                 });
                 if (response.ok) {
                     this.showMessage('Paciente editado com sucesso!', 'success');
@@ -703,7 +709,10 @@ class ProntuarioApp {
             dataNascimento: formData.get('dataNascimento'),
             telefone: formData.get('telefone'),
             email: formData.get('email'),
-            endereco: formData.get('endereco')
+            endereco: formData.get('endereco'),
+            alergias: formData.get('alergias'),
+            medicamentos: formData.get('medicamentos'),
+            comorbidades: formData.get('comorbidades')
         };
         
         try {
@@ -883,6 +892,41 @@ class ProntuarioApp {
                 <div class="info-item">
                     <label>Cadastrado por:</label>
                     <span>${paciente.criadoPor} em ${this.formatDateTime(paciente.criadoEm)}</span>
+                </div>
+            </div>
+            
+            <!-- Informações Médicas -->
+            <div class="medical-info-display">
+                <h3 class="section-title">🩺 Informações Médicas</h3>
+                
+                <div class="medical-card alergias-card">
+                    <div class="medical-header">
+                        <span class="medical-icon">🚨</span>
+                        <h4>Alergias</h4>
+                    </div>
+                    <div class="medical-content ${!paciente.alergias ? 'empty' : ''}">
+                        ${paciente.alergias || 'Nenhuma alergia registrada'}
+                    </div>
+                </div>
+                
+                <div class="medical-card medicamentos-card">
+                    <div class="medical-header">
+                        <span class="medical-icon">💊</span>
+                        <h4>Medicamentos em Uso</h4>
+                    </div>
+                    <div class="medical-content ${!paciente.medicamentos ? 'empty' : ''}">
+                        ${paciente.medicamentos || 'Nenhum medicamento registrado'}
+                    </div>
+                </div>
+                
+                <div class="medical-card comorbidades-card">
+                    <div class="medical-header">
+                        <span class="medical-icon">🏥</span>
+                        <h4>Comorbidades</h4>
+                    </div>
+                    <div class="medical-content ${!paciente.comorbidades ? 'empty' : ''}">
+                        ${paciente.comorbidades || 'Nenhuma comorbidade registrada'}
+                    </div>
                 </div>
             </div>
         `;

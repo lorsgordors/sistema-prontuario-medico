@@ -1904,3 +1904,206 @@ button:focus,
     height: 16px;
     accent-color: #667eea;
 }
+
+/* === SEÇÃO DE INFORMAÇÕES MÉDICAS === */
+.medical-info-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #f1f3ff 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    position: relative;
+}
+
+.medical-info-section::before {
+    content: '🩺';
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    background: white;
+    padding: 0 10px;
+    font-size: 1.5rem;
+}
+
+.section-title {
+    margin: 0 0 20px 0;
+    color: #2d3748;
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.medical-info-section .form-group {
+    margin-bottom: 15px;
+}
+
+.medical-info-section label {
+    font-weight: 600;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 8px;
+}
+
+.medical-info-section textarea {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    background: white;
+    transition: all 0.3s ease;
+    resize: vertical;
+}
+
+.medical-info-section textarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: #fefeff;
+}
+
+.medical-info-section textarea::placeholder {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* Cores específicas para cada tipo de informação médica */
+.medical-info-section textarea[name="alergias"] {
+    border-left: 4px solid #e53e3e;
+}
+
+.medical-info-section textarea[name="alergias"]:focus {
+    border-left-color: #c53030;
+}
+
+.medical-info-section textarea[name="medicamentos"] {
+    border-left: 4px solid #38a169;
+}
+
+.medical-info-section textarea[name="medicamentos"]:focus {
+    border-left-color: #2f855a;
+}
+
+.medical-info-section textarea[name="comorbidades"] {
+    border-left: 4px solid #3182ce;
+}
+
+.medical-info-section textarea[name="comorbidades"]:focus {
+    border-left-color: #2c5aa0;
+}
+
+/* === VISUALIZAÇÃO DAS INFORMAÇÕES MÉDICAS === */
+.medical-info-display {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+}
+
+.medical-info-display .section-title {
+    margin-bottom: 20px;
+    color: #2d3748;
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.medical-card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.medical-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.medical-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.medical-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f1f3f4;
+}
+
+.medical-header h4 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.medical-content {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    line-height: 1.6;
+    color: #2d3748;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.medical-content.empty {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* Cores específicas para cada card */
+.alergias-card {
+    border-left: 4px solid #e53e3e;
+}
+
+.alergias-card .medical-icon {
+    background: #fed7d7;
+    color: #e53e3e;
+}
+
+.alergias-card .medical-content:not(.empty) {
+    background: #fef5f5;
+    border: 1px solid #fed7d7;
+}
+
+.medicamentos-card {
+    border-left: 4px solid #38a169;
+}
+
+.medicamentos-card .medical-icon {
+    background: #c6f6d5;
+    color: #38a169;
+}
+
+.medicamentos-card .medical-content:not(.empty) {
+    background: #f0fff4;
+    border: 1px solid #c6f6d5;
+}
+
+.comorbidades-card {
+    border-left: 4px solid #3182ce;
+}
+
+.comorbidades-card .medical-icon {
+    background: #bee3f8;
+    color: #3182ce;
+}
+
+.comorbidades-card .medical-content:not(.empty) {
+    background: #ebf8ff;
+    border: 1px solid #bee3f8;
+}

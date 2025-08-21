@@ -445,13 +445,16 @@ app.put('/api/pacientes/:id', requireAuth, async (req, res) => {
                 }
                 
                 // Atualizar dados permitidos
-                const { nomeCompleto, cpf, dataNascimento, telefone, email, endereco } = req.body;
+                const { nomeCompleto, cpf, dataNascimento, telefone, email, endereco, alergias, medicamentos, comorbidades } = req.body;
                 paciente.nomeCompleto = nomeCompleto;
                 paciente.cpf = cpf;
                 paciente.dataNascimento = dataNascimento;
                 paciente.telefone = telefone;
                 paciente.email = email;
                 paciente.endereco = endereco;
+                paciente.alergias = alergias;
+                paciente.medicamentos = medicamentos;
+                paciente.comorbidades = comorbidades;
                 paciente.ultimaAtualizacao = new Date().toISOString();
                 
                 // Criptografar antes de salvar

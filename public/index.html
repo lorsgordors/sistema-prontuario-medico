@@ -319,6 +319,29 @@
                         <textarea id="pacienteEndereco" name="endereco" rows="3"></textarea>
                     </div>
                     
+                    <!-- Informações Médicas -->
+                    <div class="medical-info-section">
+                        <h3 class="section-title">🩺 Informações Médicas</h3>
+                        
+                        <div class="form-group">
+                            <label for="pacienteAlergias">🚨 Alergias</label>
+                            <textarea id="pacienteAlergias" name="alergias" rows="3" 
+                                placeholder="Liste alergias conhecidas (medicamentos, alimentos, substâncias, etc.)"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pacienteMedicamentos">💊 Medicamentos em Uso</label>
+                            <textarea id="pacienteMedicamentos" name="medicamentos" rows="3" 
+                                placeholder="Liste medicamentos de uso contínuo com doses e frequência"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pacienteComorbidades">🏥 Comorbidades</label>
+                            <textarea id="pacienteComorbidades" name="comorbidades" rows="3" 
+                                placeholder="Liste doenças crônicas, condições médicas preexistentes"></textarea>
+                        </div>
+                    </div>
+                    
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">💾 Cadastrar Paciente</button>
                         <button type="reset" class="btn btn-secondary">🔄 Limpar</button>
@@ -340,7 +363,7 @@
                 <div class="paciente-details">
                 <!-- Modal de edição de paciente -->
                 <div id="editarPacienteModal" class="modal hidden">
-                    <div class="modal-content" style="max-width:400px;">
+                    <div class="modal-content" style="max-width:600px; max-height:90vh; overflow-y:auto;">
                         <h3>Editar Paciente</h3>
                         <form id="editarPacienteForm">
                             <input type="hidden" id="editarPacienteId" name="id">
@@ -368,6 +391,26 @@
                                 <label for="editarPacienteEndereco">Endereço:</label>
                                 <textarea id="editarPacienteEndereco" name="endereco" rows="3"></textarea>
                             </div>
+                            
+                            <!-- Informações Médicas -->
+                            <div class="form-group">
+                                <label for="editarPacienteAlergias">🚨 Alergias:</label>
+                                <textarea id="editarPacienteAlergias" name="alergias" rows="2" 
+                                    placeholder="Alergias conhecidas"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editarPacienteMedicamentos">💊 Medicamentos em Uso:</label>
+                                <textarea id="editarPacienteMedicamentos" name="medicamentos" rows="2" 
+                                    placeholder="Medicamentos de uso contínuo"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editarPacienteComorbidades">🏥 Comorbidades:</label>
+                                <textarea id="editarPacienteComorbidades" name="comorbidades" rows="2" 
+                                    placeholder="Doenças crônicas ou condições médicas"></textarea>
+                            </div>
+                            
                             <div class="modal-actions">
                                 <button type="submit" class="btn btn-primary">Salvar</button>
                                 <button type="button" class="btn btn-secondary" id="cancelarEditarPaciente">Cancelar</button>
