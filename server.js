@@ -685,6 +685,7 @@ app.get('/api/estatisticas', requireAuth, async (req, res) => {
         let totalPacientes = 0;
         let totalAtendimentos = 0;
         let pacientesRecentes = 0;
+        let valorTotalAtendimentos = 0;
         
         const umMesAtras = new Date();
         umMesAtras.setMonth(umMesAtras.getMonth() - 1);
@@ -693,7 +694,22 @@ app.get('/api/estatisticas', requireAuth, async (req, res) => {
             const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
             if (paciente && podeVerPaciente(req.session.user, paciente)) {
                 totalPacientes++;
-                totalAtendimentos += paciente.atendimentos ? paciente.atendimentos.length : 0;
+                
+                // Contar atendimentos e somar valores do usuário logado
+                if (paciente.atendimentos) {
+                    const atendimentosDoUsuario = paciente.atendimentos.filter(
+                        atend => atend.profissionalId === req.session.user.id
+                    );
+                    
+                    totalAtendimentos += atendimentosDoUsuario.length;
+                    
+                    // Somar valores dos atendimentos
+                    atendimentosDoUsuario.forEach(atend => {
+                        if (atend.valor && !isNaN(parseFloat(atend.valor))) {
+                            valorTotalAtendimentos += parseFloat(atend.valor);
+                        }
+                    });
+                }
                 
                 // Pacientes cadastrados no último mês
                 if (new Date(paciente.criadoEm) > umMesAtras) {
@@ -706,11 +722,122 @@ app.get('/api/estatisticas', requireAuth, async (req, res) => {
             totalPacientes,
             totalAtendimentos,
             pacientesRecentes,
+            valorTotalAtendimentos: valorTotalAtendimentos.toFixed(2),
             tipoUsuario: req.session.user.tipo
         });
     } catch (error) {
         console.error('Erro ao buscar estatísticas:', error);
         res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+    }
+});
+
+// === ROTA DE ARRECADAÇÃO ===
+app.get('/api/arrecadacao', requireAuth, async (req, res) => {
+    try {
+        const { periodo } = req.query; // 7, 30, 90, 365 ou custom
+        const { dataInicio, dataFim } = req.query;
+        
+        // Buscar lista de arquivos de pacientes do GitHub
+        const files = await listFilesFromGithub('pacientes');
+        let atendimentosComValor = [];
+        
+        const agora = new Date();
+        let dataLimite;
+        
+        // Definir data limite baseada no período
+        if (periodo === 'custom' && dataInicio && dataFim) {
+            dataLimite = new Date(dataInicio);
+        } else {
+            const diasAtras = parseInt(periodo) || 30;
+            dataLimite = new Date(agora.getTime() - (diasAtras * 24 * 60 * 60 * 1000));
+        }
+        
+        for (const file of files) {
+            const paciente = await fetchJsonFromGithub(`pacientes/${file.name}`);
+            if (paciente && podeVerPaciente(req.session.user, paciente)) {
+                if (paciente.atendimentos) {
+                    paciente.atendimentos
+                        .filter(atend => atend.profissionalId === req.session.user.id)
+                        .forEach(atend => {
+                            const dataAtendimento = new Date(atend.data + ' ' + atend.horario);
+                            
+                            // Filtrar por período
+                            let incluirAtendimento = false;
+                            if (periodo === 'custom' && dataInicio && dataFim) {
+                                const inicio = new Date(dataInicio);
+                                const fim = new Date(dataFim + ' 23:59:59');
+                                incluirAtendimento = dataAtendimento >= inicio && dataAtendimento <= fim;
+                            } else {
+                                incluirAtendimento = dataAtendimento >= dataLimite;
+                            }
+                            
+                            if (incluirAtendimento && atend.valor && !isNaN(parseFloat(atend.valor))) {
+                                atendimentosComValor.push({
+                                    data: atend.data,
+                                    horario: atend.horario,
+                                    valor: parseFloat(atend.valor),
+                                    titulo: atend.titulo,
+                                    paciente: paciente.nomeCompleto,
+                                    observacoes: atend.observacoes
+                                });
+                            }
+                        });
+                }
+            }
+        }
+        
+        // Ordenar por data (mais recente primeiro)
+        atendimentosComValor.sort((a, b) => 
+            new Date(b.data + ' ' + b.horario) - new Date(a.data + ' ' + a.horario)
+        );
+        
+        // Calcular estatísticas
+        const valorTotal = atendimentosComValor.reduce((acc, atend) => acc + atend.valor, 0);
+        const quantidade = atendimentosComValor.length;
+        const valorMedio = quantidade > 0 ? valorTotal / quantidade : 0;
+        
+        // Estatísticas por período
+        const hoje = new Date();
+        const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+        const inicioSemana = new Date(hoje.getTime() - (7 * 24 * 60 * 60 * 1000));
+        
+        const valorMes = atendimentosComValor
+            .filter(atend => new Date(atend.data + ' ' + atend.horario) >= inicioMes)
+            .reduce((acc, atend) => acc + atend.valor, 0);
+            
+        const valorSemana = atendimentosComValor
+            .filter(atend => new Date(atend.data + ' ' + atend.horario) >= inicioSemana)
+            .reduce((acc, atend) => acc + atend.valor, 0);
+        
+        // Dados para o gráfico (agrupados por data)
+        const dadosGrafico = {};
+        atendimentosComValor.forEach(atend => {
+            if (!dadosGrafico[atend.data]) {
+                dadosGrafico[atend.data] = 0;
+            }
+            dadosGrafico[atend.data] += atend.valor;
+        });
+        
+        const labels = Object.keys(dadosGrafico).sort();
+        const valores = labels.map(data => dadosGrafico[data]);
+        
+        res.json({
+            resumo: {
+                valorTotal: valorTotal.toFixed(2),
+                valorMes: valorMes.toFixed(2),
+                valorSemana: valorSemana.toFixed(2),
+                valorMedio: valorMedio.toFixed(2),
+                quantidade
+            },
+            grafico: {
+                labels,
+                valores
+            },
+            detalhes: atendimentosComValor.slice(0, 50) // Limitar a 50 para performance
+        });
+    } catch (error) {
+        console.error('Erro ao buscar dados de arrecadação:', error);
+        res.status(500).json({ error: 'Erro ao buscar dados de arrecadação' });
     }
 });
 

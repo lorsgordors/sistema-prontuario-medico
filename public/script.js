@@ -306,6 +306,22 @@ class ProntuarioApp {
         document.getElementById('cancelarLimpezaBtn').addEventListener('click', () => {
             this.hideLimparLogsModal();
         });
+        
+        // Event listeners da aba de arrecadação
+        document.getElementById('refreshArrecadacao')?.addEventListener('click', () => {
+            const periodo = document.getElementById('periodFilter').value;
+            this.loadArrecadacao(periodo);
+        });
+        
+        document.getElementById('periodFilter')?.addEventListener('change', (e) => {
+            const periodo = e.target.value;
+            if (periodo === 'custom') {
+                document.getElementById('customDates').style.display = 'flex';
+            } else {
+                document.getElementById('customDates').style.display = 'none';
+                this.loadArrecadacao(periodo);
+            }
+        });
     }
     
     setupValidationEventListeners() {
@@ -567,7 +583,7 @@ class ProntuarioApp {
             
             <div class="stat-card success">
                 <div class="stat-number">${stats.totalAtendimentos}</div>
-                <div class="stat-label">Total de Atendimentos</div>
+                <div class="stat-label">Meus Atendimentos</div>
             </div>
             
             <div class="stat-card warning">
@@ -668,6 +684,8 @@ class ProntuarioApp {
             this.loadPacientes();
         } else if (tabName === 'meuPerfil') {
             this.loadEstatisticas();
+        } else if (tabName === 'arrecadacao') {
+            this.loadArrecadacao();
         } else if (tabName === 'usuarios' && this.currentUser.tipo === 'Administrador') {
             this.loadUsuarios();
         } else if (tabName === 'logs' && this.currentUser.tipo === 'Administrador') {
@@ -1378,6 +1396,206 @@ class ProntuarioApp {
                 </div>
             </div>
         `;
+    }
+    
+    // === FUNCIONALIDADES DE ARRECADAÇÃO ===
+    async loadArrecadacao(periodo = '30') {
+        try {
+            const response = await fetch(`/api/arrecadacao?periodo=${periodo}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.renderArrecadacao(data);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados de arrecadação:', error);
+        }
+    }
+    
+    renderArrecadacao(data) {
+        // Atualizar cards de resumo
+        document.getElementById('valorTotal').textContent = `R$ ${parseFloat(data.resumo.valorTotal).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('valorMes').textContent = `R$ ${parseFloat(data.resumo.valorMes).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('valorSemana').textContent = `R$ ${parseFloat(data.resumo.valorSemana).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('valorMedio').textContent = `R$ ${parseFloat(data.resumo.valorMedio).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        
+        // Atualizar info badge
+        document.getElementById('infoArrecadacao').textContent = `${data.resumo.quantidade} atendimentos`;
+        
+        // Renderizar gráfico simples (ASCII)
+        this.renderGraficoSimples(data.grafico);
+        
+        // Renderizar detalhes
+        this.renderDetalhesArrecadacao(data.detalhes);
+    }
+    
+    renderGraficoSimples(dadosGrafico) {
+        const canvas = document.getElementById('arrecadacaoChart');
+        const ctx = canvas.getContext('2d');
+        
+        // Limpar canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (dadosGrafico.labels.length === 0) {
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('📊 Nenhum dado disponível', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+        
+        const padding = 60;
+        const chartWidth = canvas.width - (padding * 2);
+        const chartHeight = canvas.height - (padding * 2);
+        
+        const maxValue = Math.max(...dadosGrafico.valores);
+        const minValue = 0;
+        
+        // Configuração das cores
+        const lineColor = '#3b82f6';
+        const fillColor = 'rgba(59, 130, 246, 0.1)';
+        const pointColor = '#1e40af';
+        
+        // Desenhar eixos
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 2;
+        
+        // Eixo Y
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // Eixo X
+        ctx.beginPath();
+        ctx.moveTo(padding, canvas.height - padding);
+        ctx.lineTo(canvas.width - padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // Desenhar linhas de grade Y
+        ctx.strokeStyle = '#f3f4f6';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 5; i++) {
+            const y = padding + (chartHeight / 5) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(canvas.width - padding, y);
+            ctx.stroke();
+        }
+        
+        // Labels do eixo Y
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 5; i++) {
+            const value = maxValue - (maxValue / 5) * i;
+            const y = padding + (chartHeight / 5) * i + 4;
+            ctx.fillText(`R$ ${value.toFixed(0)}`, padding - 10, y);
+        }
+        
+        // Desenhar linha do gráfico
+        if (dadosGrafico.valores.length > 1) {
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            dadosGrafico.valores.forEach((valor, index) => {
+                const x = padding + (chartWidth / (dadosGrafico.valores.length - 1)) * index;
+                const y = canvas.height - padding - (valor / maxValue) * chartHeight;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // Preencher área sob a linha
+            ctx.fillStyle = fillColor;
+            ctx.lineTo(canvas.width - padding, canvas.height - padding);
+            ctx.lineTo(padding, canvas.height - padding);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Desenhar pontos
+        ctx.fillStyle = pointColor;
+        dadosGrafico.valores.forEach((valor, index) => {
+            const x = padding + (chartWidth / (dadosGrafico.valores.length - 1)) * index;
+            const y = canvas.height - padding - (valor / maxValue) * chartHeight;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        });
+        
+        // Labels do eixo X (datas)
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        dadosGrafico.labels.slice(0, 10).forEach((label, index) => { // Mostrar apenas 10 labels
+            const x = padding + (chartWidth / (dadosGrafico.labels.length - 1)) * index;
+            const dataFormatada = new Date(label + ' 12:00:00').toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit'
+            });
+            ctx.fillText(dataFormatada, x, canvas.height - padding + 20);
+        });
+    }
+    
+    renderDetalhesArrecadacao(detalhes) {
+        const container = document.getElementById('detalhesArrecadacao');
+        
+        if (detalhes.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">💰</div>
+                    <p>Nenhum atendimento com valor encontrado no período selecionado</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = detalhes.map(atend => `
+            <div class="detail-item">
+                <div class="detail-info">
+                    <div class="detail-paciente">${atend.paciente}</div>
+                    <div class="detail-data">📅 ${this.formatDate(atend.data)} às ${atend.horario}</div>
+                    <div class="detail-desc">${atend.titulo}</div>
+                </div>
+                <div class="detail-valor">R$ ${atend.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+        `).join('');
+    }
+    
+    filtrarPeriodoCustom() {
+        const dataInicio = document.getElementById('dataInicio').value;
+        const dataFim = document.getElementById('dataFim').value;
+        
+        if (!dataInicio || !dataFim) {
+            this.showMessage('Por favor, selecione as datas de início e fim', 'error');
+            return;
+        }
+        
+        if (new Date(dataInicio) > new Date(dataFim)) {
+            this.showMessage('Data de início deve ser anterior à data de fim', 'error');
+            return;
+        }
+        
+        this.loadArrecadacaoCustom(dataInicio, dataFim);
+    }
+    
+    async loadArrecadacaoCustom(dataInicio, dataFim) {
+        try {
+            const response = await fetch(`/api/arrecadacao?periodo=custom&dataInicio=${dataInicio}&dataFim=${dataFim}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.renderArrecadacao(data);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados de arrecadação:', error);
+        }
     }
 }
 

@@ -61,6 +61,7 @@
             <button class="nav-btn active" data-tab="meuPerfil">👤 Meu Perfil</button>
             <button class="nav-btn" data-tab="pacientes">👥 Pacientes</button>
             <button class="nav-btn" data-tab="cadastroPaciente">➕ Novo Paciente</button>
+            <button class="nav-btn" data-tab="arrecadacao">💰 Arrecadação</button>
             <button class="nav-btn" data-tab="usuarios" id="usuariosTabBtn" style="display:none">👥 Usuários</button>
             <button class="nav-btn" data-tab="logs" id="logsTabBtn" style="display:none">📋 Logs</button>
         </nav>
@@ -255,6 +256,94 @@
                             
                             <button type="submit" class="btn btn-primary">🔒 Alterar Senha</button>
                         </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aba Arrecadação -->
+            <section id="arrecadacao" class="tab-content">
+                <div class="content-header">
+                    <h2>💰 Arrecadação</h2>
+                    <div class="header-actions">
+                        <span id="infoArrecadacao" class="info-badge">Carregando...</span>
+                        <button id="refreshArrecadacao" class="btn btn-secondary">🔄 Atualizar</button>
+                    </div>
+                </div>
+                
+                <!-- Resumo Financeiro -->
+                <div class="financial-summary">
+                    <div class="summary-cards">
+                        <div class="summary-card total">
+                            <div class="card-icon">💰</div>
+                            <div class="card-info">
+                                <div class="card-label">Total Arrecadado</div>
+                                <div class="card-value" id="valorTotal">R$ 0,00</div>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-card month">
+                            <div class="card-icon">📅</div>
+                            <div class="card-info">
+                                <div class="card-label">Este Mês</div>
+                                <div class="card-value" id="valorMes">R$ 0,00</div>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-card week">
+                            <div class="card-icon">📊</div>
+                            <div class="card-info">
+                                <div class="card-label">Esta Semana</div>
+                                <div class="card-value" id="valorSemana">R$ 0,00</div>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-card average">
+                            <div class="card-icon">⭐</div>
+                            <div class="card-info">
+                                <div class="card-label">Valor Médio</div>
+                                <div class="card-value" id="valorMedio">R$ 0,00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtros de Período -->
+                <div class="period-filters">
+                    <div class="filter-group">
+                        <label>Período:</label>
+                        <select id="periodFilter">
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="30" selected>Últimos 30 dias</option>
+                            <option value="90">Últimos 3 meses</option>
+                            <option value="365">Último ano</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="custom-dates" id="customDates" style="display: none;">
+                        <input type="date" id="dataInicio" placeholder="Data início">
+                        <input type="date" id="dataFim" placeholder="Data fim">
+                        <button class="btn btn-primary" onclick="app.filtrarPeriodoCustom()">Filtrar</button>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Evolução -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>📈 Evolução da Arrecadação</h3>
+                    </div>
+                    <div class="chart-content">
+                        <canvas id="arrecadacaoChart" width="800" height="400"></canvas>
+                    </div>
+                </div>
+
+                <!-- Detalhes por Período -->
+                <div class="details-container">
+                    <div class="details-header">
+                        <h3>📋 Detalhes dos Atendimentos</h3>
+                    </div>
+                    <div id="detalhesArrecadacao" class="details-list">
+                        <!-- Detalhes serão carregados aqui -->
                     </div>
                 </div>
             </section>
