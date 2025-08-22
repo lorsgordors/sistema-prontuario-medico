@@ -452,6 +452,57 @@
                                 </div>
                             </div>
                             
+                            <!-- Seção de Sinais Vitais -->
+                            <div class="vitals-section">
+                                <div class="vitals-header">
+                                    <label class="vitals-toggle">
+                                        <input type="checkbox" id="incluirSinaisVitais">
+                                        <span class="vitals-title">🩺 Incluir Sinais Vitais</span>
+                                    </label>
+                                </div>
+                                
+                                <div id="sinaisVitaisFields" class="vitals-fields hidden">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="pressaoSistolica">Pressão Arterial (mmHg)</label>
+                                            <div class="pressure-inputs">
+                                                <input type="number" id="pressaoSistolica" name="pressaoSistolica" 
+                                                    placeholder="120" min="50" max="300" class="pressure-input">
+                                                <span class="pressure-separator">/</span>
+                                                <input type="number" id="pressaoDiastolica" name="pressaoDiastolica" 
+                                                    placeholder="80" min="30" max="200" class="pressure-input">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="frequenciaCardiaca">Frequência Cardíaca (bpm)</label>
+                                            <input type="number" id="frequenciaCardiaca" name="frequenciaCardiaca" 
+                                                placeholder="72" min="30" max="250">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="frequenciaRespiratoria">Frequência Respiratória (rpm)</label>
+                                            <input type="number" id="frequenciaRespiratoria" name="frequenciaRespiratoria" 
+                                                placeholder="16" min="8" max="60">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="temperatura">Temperatura (°C)</label>
+                                            <input type="number" id="temperatura" name="temperatura" step="0.1"
+                                                placeholder="36.5" min="30" max="45">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label for="saturacao">Saturação O₂ (%)</label>
+                                            <input type="number" id="saturacao" name="saturacao" 
+                                                placeholder="98" min="70" max="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="form-group">
                                 <label for="atendimentoObs">Observações *</label>
                                 <textarea id="atendimentoObs" name="observacoes" rows="4" required></textarea>

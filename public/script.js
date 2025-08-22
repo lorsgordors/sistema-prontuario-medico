@@ -242,6 +242,11 @@ class ProntuarioApp {
             e.target.value = this.formatCPF(e.target.value);
         });
         
+        // Toggle para sinais vitais
+        document.getElementById('incluirSinaisVitais').addEventListener('change', (e) => {
+            this.toggleSinaisVitais(e.target.checked);
+        });
+        
         // Data padrão para atendimentos
         document.getElementById('atendimentoData').valueAsDate = new Date();
     }
@@ -975,6 +980,7 @@ class ProntuarioApp {
                     </div>
                 </div>
                 <div class="atendimento-obs">${atendimento.observacoes}</div>
+                ${atendimento.sinaisVitais ? this.renderSinaisVitais(atendimento.sinaisVitais) : ''}
                 <div class="atendimento-profissional">
                     👨‍⚕️ ${atendimento.profissionalNome} (${atendimento.profissionalRegistro})
                     ${atendimento.profissionalEstado ? ` - ${atendimento.profissionalEstado}` : ''}
@@ -997,11 +1003,33 @@ class ProntuarioApp {
         document.getElementById('atendimentoForm').classList.add('hidden');
         document.getElementById('novoAtendimentoBtn').style.display = 'block';
         document.getElementById('atendimentoForm').reset();
+        // Reset dos sinais vitais
+        document.getElementById('incluirSinaisVitais').checked = false;
+        this.toggleSinaisVitais(false);
+    }
+    
+    toggleSinaisVitais(mostrar) {
+        const fieldsContainer = document.getElementById('sinaisVitaisFields');
+        const vitalsSection = document.querySelector('.vitals-section');
+        
+        if (mostrar) {
+            fieldsContainer.classList.remove('hidden');
+            vitalsSection.classList.add('active');
+        } else {
+            fieldsContainer.classList.add('hidden');
+            vitalsSection.classList.remove('active');
+            // Limpar campos dos sinais vitais
+            ['pressaoSistolica', 'pressaoDiastolica', 'frequenciaCardiaca', 
+             'frequenciaRespiratoria', 'temperatura', 'saturacao'].forEach(id => {
+                document.getElementById(id).value = '';
+            });
+        }
     }
     
     async handleNovoAtendimento() {
         const form = document.getElementById('atendimentoForm');
         const formData = new FormData(form);
+        const incluirVitais = document.getElementById('incluirSinaisVitais').checked;
         
         const atendimentoData = {
             titulo: formData.get('titulo'),
@@ -1010,6 +1038,45 @@ class ProntuarioApp {
             observacoes: formData.get('observacoes'),
             valor: formData.get('valor')
         };
+        
+        // Incluir sinais vitais se foram marcados
+        if (incluirVitais) {
+            const pressaoSist = formData.get('pressaoSistolica');
+            const pressaoDiast = formData.get('pressaoDiastolica');
+            const fc = formData.get('frequenciaCardiaca');
+            const fr = formData.get('frequenciaRespiratoria');
+            const temp = formData.get('temperatura');
+            const sat = formData.get('saturacao');
+            
+            const sinaisVitais = {};
+            
+            // Pressão arterial (precisa de ambos os valores)
+            if (pressaoSist && pressaoDiast && pressaoSist.trim() && pressaoDiast.trim()) {
+                sinaisVitais.pressaoArterial = `${pressaoSist.trim()}/${pressaoDiast.trim()}`;
+            }
+            
+            // Outros sinais vitais
+            if (fc && fc.trim()) {
+                sinaisVitais.frequenciaCardiaca = fc.trim();
+            }
+            
+            if (fr && fr.trim()) {
+                sinaisVitais.frequenciaRespiratoria = fr.trim();
+            }
+            
+            if (temp && temp.trim()) {
+                sinaisVitais.temperatura = temp.trim();
+            }
+            
+            if (sat && sat.trim()) {
+                sinaisVitais.saturacao = sat.trim();
+            }
+            
+            // Só incluir se houver pelo menos um sinal vital
+            if (Object.keys(sinaisVitais).length > 0) {
+                atendimentoData.sinaisVitais = sinaisVitais;
+            }
+        }
         
         try {
             const response = await fetch(`/api/pacientes/${this.currentPaciente.id}/atendimentos`, {
@@ -1273,6 +1340,44 @@ class ProntuarioApp {
             console.error('Erro ao limpar logs:', error);
             this.showMessage('Erro ao limpar logs', 'error');
         }
+    }
+    
+    renderSinaisVitais(sinaisVitais) {
+        const vitaisHtml = [];
+        
+        if (sinaisVitais.pressaoArterial) {
+            vitaisHtml.push(`<span class="vital-item vital-pressao">🩸 PA: ${sinaisVitais.pressaoArterial} mmHg</span>`);
+        }
+        
+        if (sinaisVitais.frequenciaCardiaca) {
+            vitaisHtml.push(`<span class="vital-item vital-fc">💓 FC: ${sinaisVitais.frequenciaCardiaca} bpm</span>`);
+        }
+        
+        if (sinaisVitais.frequenciaRespiratoria) {
+            vitaisHtml.push(`<span class="vital-item vital-fr">🫁 FR: ${sinaisVitais.frequenciaRespiratoria} rpm</span>`);
+        }
+        
+        if (sinaisVitais.temperatura) {
+            vitaisHtml.push(`<span class="vital-item vital-temp">🌡️ T: ${sinaisVitais.temperatura}°C</span>`);
+        }
+        
+        if (sinaisVitais.saturacao) {
+            vitaisHtml.push(`<span class="vital-item vital-sat">💨 SpO₂: ${sinaisVitais.saturacao}%</span>`);
+        }
+        
+        if (vitaisHtml.length === 0) return '';
+        
+        return `
+            <div class="sinais-vitais-display">
+                <div class="vitais-header">
+                    <span class="vitais-icon">🩺</span>
+                    <strong>Sinais Vitais</strong>
+                </div>
+                <div class="vitais-grid">
+                    ${vitaisHtml.join('')}
+                </div>
+            </div>
+        `;
     }
 }
 

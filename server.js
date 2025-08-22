@@ -570,6 +570,7 @@ app.post('/api/pacientes/:id/atendimentos', requireAuth, async (req, res) => {
                     horario: atendimentoData.horario,
                     valor: atendimentoData.valor,
                     observacoes: atendimentoData.observacoes,
+                    sinaisVitais: atendimentoData.sinaisVitais, // ✅ ADICIONADO!
                     profissionalNome: req.session.user.nomeCompleto,
                     profissionalRegistro: `${req.session.user.tipoRegistro}: ${req.session.user.numeroRegistro}`,
                     profissionalEstado: req.session.user.estadoRegistro,

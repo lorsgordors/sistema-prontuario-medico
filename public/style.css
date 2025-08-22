@@ -2107,3 +2107,216 @@ button:focus,
     background: #ebf8ff;
     border: 1px solid #bee3f8;
 }
+
+/* === SEÇÃO DE SINAIS VITAIS === */
+.vitals-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8fdff;
+    border: 2px dashed #bee3f8;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.vitals-section.active {
+    background: #ebf8ff;
+    border-color: #3182ce;
+    border-style: solid;
+}
+
+.vitals-header {
+    margin-bottom: 15px;
+}
+
+.vitals-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #2d3748;
+    user-select: none;
+}
+
+.vitals-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #3182ce;
+    cursor: pointer;
+}
+
+.vitals-title {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vitals-fields {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+    animation: slideDown 0.3s ease-out;
+}
+
+.vitals-fields.hidden {
+    display: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pressure-inputs {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.pressure-input {
+    flex: 1;
+    min-width: 70px;
+}
+
+.pressure-separator {
+    font-weight: bold;
+    color: #3182ce;
+    font-size: 1.2rem;
+}
+
+.vitals-fields .form-group label {
+    color: #3182ce;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.vitals-fields input[type="number"] {
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.vitals-fields input[type="number"]:focus {
+    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+}
+
+.vitals-fields input[type="number"]::placeholder {
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* Indicadores visuais para valores dos sinais vitais */
+.vitals-fields input[name="pressaoSistolica"]:valid,
+.vitals-fields input[name="pressaoDiastolica"]:valid {
+    border-left: 4px solid #e53e3e;
+}
+
+.vitals-fields input[name="frequenciaCardiaca"]:valid {
+    border-left: 4px solid #d69e2e;
+}
+
+.vitals-fields input[name="frequenciaRespiratoria"]:valid {
+    border-left: 4px solid #3182ce;
+}
+
+.vitals-fields input[name="temperatura"]:valid {
+    border-left: 4px solid #38a169;
+}
+
+.vitals-fields input[name="saturacao"]:valid {
+    border-left: 4px solid #805ad5;
+}
+
+/* === EXIBIÇÃO DOS SINAIS VITAIS NOS ATENDIMENTOS === */
+.sinais-vitais-display {
+    margin: 15px 0 10px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #bee3f8;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(49, 130, 206, 0.1);
+}
+
+.vitais-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: #2d3748;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.vitais-icon {
+    font-size: 1.2rem;
+    color: #3182ce;
+}
+
+.vitais-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+}
+
+.vital-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    background: white;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #2d3748;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 3px solid;
+}
+
+/* Cores específicas para cada sinal vital */
+.vital-pressao {
+    border-left-color: #e53e3e;
+}
+
+.vital-fc {
+    border-left-color: #d69e2e;
+}
+
+.vital-fr {
+    border-left-color: #3182ce;
+}
+
+.vital-temp {
+    border-left-color: #38a169;
+}
+
+.vital-sat {
+    border-left-color: #805ad5;
+}
+
+/* Responsividade para sinais vitais */
+@media (max-width: 768px) {
+    .vitais-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .vital-item {
+        font-size: 0.85rem;
+        padding: 5px 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .vitais-grid {
+        grid-template-columns: 1fr;
+    }
+}
