@@ -990,6 +990,9 @@ class ProntuarioApp {
                         </div>
                     </div>
                     <div class="atendimento-actions">
+                        <button class="btn-print-atendimento" onclick="app.imprimirAtendimento('${atendimento.id}')" title="Imprimir atendimento">
+                            🖨️
+                        </button>
                         ${this.canDeleteAtendimento(atendimento) ? `
                             <button class="btn-delete-atendimento" onclick="app.confirmarExclusaoAtendimento('${atendimento.id}')" title="Excluir atendimento">
                                 🗑️
@@ -1596,6 +1599,379 @@ class ProntuarioApp {
         } catch (error) {
             console.error('Erro ao carregar dados de arrecadação:', error);
         }
+    }
+    
+    // === FUNCIONALIDADE DE IMPRESSÃO ===
+    imprimirAtendimento(atendimentoId) {
+        const atendimento = this.currentPaciente.atendimentos.find(a => a.id == atendimentoId);
+        if (!atendimento) {
+            this.showMessage('Atendimento não encontrado', 'error');
+            return;
+        }
+        
+        this.showPrintModal(atendimento);
+    }
+    
+    showPrintModal(atendimento) {
+        const modal = document.createElement('div');
+        modal.className = 'print-overlay';
+        modal.id = 'printModal';
+        
+        // Calcular idade do paciente
+        const idade = this.calcularIdade(this.currentPaciente.dataNascimento);
+        
+        // Formatar sinais vitais em texto corrido se existirem
+        let sinaisVitaisTexto = '';
+        if (atendimento.sinaisVitais) {
+            const vitais = [];
+            
+            if (atendimento.sinaisVitais.temperatura) {
+                vitais.push(`T: ${atendimento.sinaisVitais.temperatura}°C`);
+            }
+            if (atendimento.sinaisVitais.pressaoArterial) {
+                vitais.push(`PA: ${atendimento.sinaisVitais.pressaoArterial} mmHg`);
+            }
+            if (atendimento.sinaisVitais.frequenciaCardiaca) {
+                vitais.push(`FC: ${atendimento.sinaisVitais.frequenciaCardiaca} bpm`);
+            }
+            if (atendimento.sinaisVitais.frequenciaRespiratoria) {
+                vitais.push(`FR: ${atendimento.sinaisVitais.frequenciaRespiratoria} rpm`);
+            }
+            if (atendimento.sinaisVitais.saturacao) {
+                vitais.push(`SpO₂: ${atendimento.sinaisVitais.saturacao}%`);
+            }
+            
+            if (vitais.length > 0) {
+                sinaisVitaisTexto = '\n\nSinais Vitais: ' + vitais.join(', ') + '.';
+            }
+        }
+        
+        modal.innerHTML = `
+            <div class="print-modal">
+                <div class="print-header">
+                    <h2 class="print-title">🖨️ Impressão de Atendimento</h2>
+                    <button class="print-close" onclick="app.closePrintModal()">×</button>
+                </div>
+                
+                <div class="print-content">
+                    <div class="print-document">
+                        <!-- Cabeçalho da Clínica -->
+                        <div class="document-header">
+                            <h1 class="clinic-name">Sistema de Prontuário</h1>
+                            <p class="document-title">Evolução Profissional</p>
+                        </div>
+                        
+                        <!-- Informações do Paciente -->
+                        <div class="patient-info">
+                            <h3>📋 Dados do Cliente</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Nome:</span>
+                                    <span class="info-value">${this.currentPaciente.nomeCompleto}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">CPF:</span>
+                                    <span class="info-value">${this.currentPaciente.cpf}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Data Nasc.:</span>
+                                    <span class="info-value">${this.formatDate(this.currentPaciente.dataNascimento)}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Idade:</span>
+                                    <span class="info-value">${idade} anos</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Telefone:</span>
+                                    <span class="info-value">${this.currentPaciente.telefone}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Data e Hora do Atendimento -->
+                        <div class="attendance-date">
+                            📅 Atendimento realizado em ${this.formatDate(atendimento.data)} às ${atendimento.horario}
+                        </div>
+                        
+                        <!-- Título do Atendimento -->
+                        ${atendimento.titulo ? `
+                            <div class="attendance-content">
+                                <h3>🏥 Tipo de Atendimento</h3>
+                                <div style="font-weight: bold; color: #1e40af; font-size: 1.1rem; margin-bottom: 1rem;">
+                                    ${atendimento.titulo}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Evolução/Observações -->
+                        <div class="attendance-content">
+                            <h3>📝 Evolução</h3>
+                            <div class="evolution-text">${atendimento.observacoes}${sinaisVitaisTexto}</div>
+                        </div>
+                        
+                        <!-- Assinatura do Profissional -->
+                        <div class="professional-signature">
+                            <div class="signature-info">
+                                <div class="professional-name">${atendimento.profissionalNome}</div>
+                                <div class="professional-registration">${atendimento.profissionalRegistro}</div>
+                                ${atendimento.profissionalEstado ? `<div class="professional-registration">${atendimento.profissionalEstado}</div>` : ''}
+                                <div class="signature-line">Assinatura do Profissional</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Data de Impressão -->
+                        <div class="print-date">
+                            Documento impresso em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="print-actions">
+                    <button class="btn-cancel" onclick="app.closePrintModal()">Cancelar</button>
+                    <button class="btn-print" onclick="app.executePrint()">
+                        🖨️ Imprimir
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Fechar modal clicando fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closePrintModal();
+            }
+        });
+    }
+    
+    closePrintModal() {
+        const modal = document.getElementById('printModal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+    
+    executePrint() {
+        // Obter apenas o conteúdo do documento para impressão
+        const printDocument = document.querySelector('.print-document');
+        
+        // Criar uma nova janela para impressão
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Impressão de Atendimento</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    
+                    body {
+                        font-family: 'Times New Roman', serif;
+                        line-height: 1.6;
+                        color: #000;
+                        background: white;
+                        padding: 20px;
+                    }
+                    
+                    .document-header {
+                        text-align: center;
+                        border-bottom: 2px solid #2563eb;
+                        padding-bottom: 0.75rem;
+                        margin-bottom: 1.5rem;
+                    }
+                    
+                    .clinic-name {
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        color: #1e40af;
+                        margin: 0;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .document-title {
+                        font-size: 1rem;
+                        color: #374151;
+                        margin: 0.25rem 0;
+                        font-weight: normal;
+                    }
+                    
+                    .patient-info {
+                        background: #f8fafc;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 6px;
+                        padding: 1rem;
+                        margin-bottom: 1.5rem;
+                    }
+                    
+                    .patient-info h3 {
+                        color: #1e40af;
+                        font-size: 1rem;
+                        margin: 0 0 0.75rem 0;
+                        border-bottom: 1px solid #cbd5e1;
+                        padding-bottom: 0.25rem;
+                    }
+                    
+                    .info-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 0.5rem 1rem;
+                    }
+                    
+                    .info-item {
+                        display: flex;
+                        align-items: center;
+                        font-size: 0.9rem;
+                    }
+                    
+                    .info-label {
+                        font-weight: bold;
+                        color: #374151;
+                        min-width: 70px;
+                        margin-right: 0.25rem;
+                        font-size: 0.85rem;
+                    }
+                    
+                    .info-value {
+                        color: #1f2937;
+                        font-size: 0.85rem;
+                    }
+                    
+                    .attendance-content {
+                        margin: 1.5rem 0;
+                    }
+                    
+                    .attendance-content h3 {
+                        color: #1e40af;
+                        font-size: 1rem;
+                        margin: 0 0 0.75rem 0;
+                        border-bottom: 1px solid #cbd5e1;
+                        padding-bottom: 0.25rem;
+                    }
+                    
+                    .attendance-date {
+                        background: #eff6ff;
+                        border: 1px solid #bfdbfe;
+                        border-radius: 4px;
+                        padding: 0.75rem;
+                        margin-bottom: 1rem;
+                        font-weight: bold;
+                        color: #1e40af;
+                        text-align: center;
+                        font-size: 0.95rem;
+                    }
+                    
+                    .evolution-text {
+                        background: white;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 4px;
+                        padding: 1rem;
+                        min-height: 150px;
+                        white-space: pre-wrap;
+                        word-wrap: break-word;
+                        font-size: 0.95rem;
+                        line-height: 1.6;
+                    }
+                    
+                    .professional-signature {
+                        margin-top: 2rem;
+                        padding-top: 1rem;
+                        border-top: 1px solid #e5e7eb;
+                    }
+                    
+                    .signature-info {
+                        text-align: center;
+                    }
+                    
+                    .professional-name {
+                        font-size: 1rem;
+                        font-weight: bold;
+                        color: #1f2937;
+                        margin-bottom: 0.25rem;
+                    }
+                    
+                    .professional-registration {
+                        color: #6b7280;
+                        font-size: 0.9rem;
+                        margin-bottom: 1.5rem;
+                    }
+                    
+                    .signature-line {
+                        border-top: 1px solid #9ca3af;
+                        width: 250px;
+                        margin: 0 auto;
+                        padding-top: 0.25rem;
+                        color: #6b7280;
+                        font-size: 0.85rem;
+                    }
+                    
+                    .print-date {
+                        text-align: right;
+                        color: #6b7280;
+                        font-size: 0.8rem;
+                        margin-top: 1.5rem;
+                        font-style: italic;
+                    }
+                    
+                    /* Estilos específicos para impressão */
+                    @media print {
+                        body {
+                            padding: 0;
+                        }
+                        
+                        .patient-info {
+                            background: #f9f9f9 !important;
+                        }
+                        
+                        .evolution-text {
+                            border: 1px solid #ccc !important;
+                            background: white !important;
+                        }
+                        
+                        .attendance-date {
+                            background: #f0f0f0 !important;
+                            border: 1px solid #ccc !important;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                ${printDocument.outerHTML}
+            </body>
+            </html>
+        `);
+        
+        printWindow.document.close();
+        
+        // Aguardar o carregamento da página e imprimir
+        printWindow.onload = function() {
+            printWindow.print();
+            printWindow.close();
+        };
+        
+        // Fechar o modal após iniciar a impressão
+        this.closePrintModal();
+    }
+    
+    calcularIdade(dataNascimento) {
+        const hoje = new Date();
+        const nascimento = new Date(dataNascimento + ' 12:00:00');
+        let idade = hoje.getFullYear() - nascimento.getFullYear();
+        const mesAtual = hoje.getMonth();
+        const mesNascimento = nascimento.getMonth();
+        
+        if (mesAtual < mesNascimento || (mesAtual === mesNascimento && hoje.getDate() < nascimento.getDate())) {
+            idade--;
+        }
+        
+        return idade;
     }
 }
 

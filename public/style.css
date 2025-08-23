@@ -766,6 +766,33 @@ body {
     flex-shrink: 0;
 }
 
+.btn-print-atendimento {
+    background: #e6fffa;
+    border: 1px solid #81e6d9;
+    color: #065f46;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-print-atendimento:hover {
+    background: #b2f5ea;
+    border-color: #4fd1c7;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(6, 95, 70, 0.3);
+}
+
+.btn-print-atendimento:active {
+    transform: scale(0.95);
+}
+
 .btn-delete-atendimento {
     background: #fee;
     border: 1px solid #fcc;
@@ -2573,6 +2600,381 @@ button:focus,
     font-size: 4rem;
     margin-bottom: 1rem;
     opacity: 0.5;
+}
+
+/* ========================================
+   ESTILOS DE IMPRESSÃO DE ATENDIMENTO
+======================================== */
+
+.print-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.print-modal {
+    background: white;
+    border-radius: 12px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.print-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.print-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.print-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.print-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.print-content {
+    padding: 2rem;
+}
+
+.print-actions {
+    background: #f8fafc;
+    padding: 1.5rem 2rem;
+    border-radius: 0 0 12px 12px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-print {
+    background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-print:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-cancel {
+    background: #6b7280;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #4b5563;
+}
+
+/* Documento de Impressão */
+.print-document {
+    background: white;
+    min-height: 600px;
+    font-family: 'Times New Roman', serif;
+    line-height: 1.6;
+    color: #000;
+}
+
+.document-header {
+    text-align: center;
+    border-bottom: 3px solid #2563eb;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+}
+
+.clinic-name {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #1e40af;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.document-title {
+    font-size: 1.2rem;
+    color: #374151;
+    margin: 0.5rem 0;
+    font-weight: normal;
+}
+
+.patient-info {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.patient-info h3 {
+    color: #1e40af;
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 0.5rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+}
+
+.info-label {
+    font-weight: bold;
+    color: #374151;
+    min-width: 100px;
+    margin-right: 0.5rem;
+}
+
+.info-value {
+    color: #1f2937;
+}
+
+.attendance-content {
+    margin: 2rem 0;
+}
+
+.attendance-content h3 {
+    color: #1e40af;
+    font-size: 1.1rem;
+    margin: 0 0 1rem 0;
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 0.5rem;
+}
+
+.attendance-date {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    color: #1e40af;
+    text-align: center;
+}
+
+.evolution-text {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 1.5rem;
+    min-height: 200px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.vital-signs-print {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.vital-signs-print h4 {
+    color: #0c4a6e;
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+}
+
+.vitals-print-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem;
+}
+
+.vital-print-item {
+    background: white;
+    border: 1px solid #bae6fd;
+    border-radius: 4px;
+    padding: 0.5rem;
+    text-align: center;
+    font-weight: bold;
+    color: #0c4a6e;
+}
+
+.professional-signature {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e5e7eb;
+}
+
+.signature-info {
+    text-align: center;
+}
+
+.professional-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.professional-registration {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+.signature-line {
+    border-top: 2px solid #9ca3af;
+    width: 300px;
+    margin: 0 auto;
+    padding-top: 0.5rem;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.print-date {
+    text-align: right;
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-top: 2rem;
+    font-style: italic;
+}
+
+/* Estilos específicos para impressão */
+@media print {
+    .print-overlay {
+        position: static !important;
+        background: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .print-modal {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    
+    .print-header,
+    .print-actions {
+        display: none !important;
+    }
+    
+    .print-content {
+        padding: 0 !important;
+    }
+    
+    .print-document {
+        font-size: 12pt !important;
+        line-height: 1.4 !important;
+        color: black !important;
+        background: white !important;
+    }
+    
+    .document-header {
+        break-after: avoid !important;
+    }
+    
+    .patient-info {
+        break-inside: avoid !important;
+        background: #f9f9f9 !important;
+    }
+    
+    .professional-signature {
+        break-before: auto !important;
+        break-inside: avoid !important;
+    }
+    
+    .evolution-text {
+        border: 1px solid #ccc !important;
+        background: white !important;
+    }
+    
+    .vital-signs-print {
+        background: #f5f5f5 !important;
+        border: 1px solid #ccc !important;
+        break-inside: avoid !important;
+    }
+    
+    .vital-print-item {
+        background: white !important;
+        border: 1px solid #ccc !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .print-modal {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .print-header,
+    .print-actions {
+        padding: 1rem;
+    }
+    
+    .print-content {
+        padding: 1rem;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .print-actions {
+        flex-direction: column;
+    }
+    
+    .signature-line {
+        width: 200px;
+    }
 }
 
 @media (max-width: 480px) {
