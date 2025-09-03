@@ -182,11 +182,6 @@ class ProntuarioApp {
             this.handleAlterarSenha();
         });
         
-        // Registrar usuário
-        document.getElementById('registrarUsuarioBtn').addEventListener('click', () => {
-            this.showRegistrarUsuarioModal();
-        });
-        
         document.getElementById('registrarUsuarioForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleRegistrarUsuario();
@@ -631,6 +626,16 @@ class ProntuarioApp {
         if (this.currentUser.tipo === 'Administrador') {
             usuariosTabBtn.style.display = '';
             logsTabBtn.style.display = '';
+            
+            // Configurar botão de novo usuário apenas para admin
+            const novoUsuarioBtn = document.getElementById('novoUsuarioBtn');
+            if (novoUsuarioBtn) {
+                // Remover event listener anterior se existir
+                novoUsuarioBtn.removeEventListener('click', this.handleNovoUsuario);
+                // Adicionar novo event listener
+                this.handleNovoUsuario = () => this.showRegistrarUsuarioModal();
+                novoUsuarioBtn.addEventListener('click', this.handleNovoUsuario);
+            }
         } else {
             usuariosTabBtn.style.display = 'none';
             logsTabBtn.style.display = 'none';
