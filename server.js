@@ -1005,8 +1005,28 @@ app.get('/api/agendamentos', requireAuth, async (req, res) => {
             }
         }
         
+        // Filtrar agendamentos por usuário (não administradores veem apenas os próprios)
+        let agendamentosFiltrados = agendamentos;
+        
+        console.log('=== DEBUG AGENDAMENTOS ===');
+        console.log('Total de agendamentos no arquivo:', agendamentos.length);
+        console.log('Usuário logado:', req.session.user ? req.session.user.nomeCompleto : 'NENHUM');
+        console.log('Tipo de usuário:', req.session.user ? req.session.user.tipo : 'NENHUM');
+        
+        if (req.session.user && req.session.user.tipo !== 'Administrador') {
+            console.log('Filtrando agendamentos para usuário não-admin...');
+            agendamentosFiltrados = agendamentos.filter(agendamento => {
+                console.log(`Agendamento ID ${agendamento.id}: criadoPor="${agendamento.criadoPor}" vs usuário="${req.session.user.nomeCompleto}"`);
+                return agendamento.criadoPor === req.session.user.nomeCompleto;
+            });
+            console.log('Agendamentos após filtro:', agendamentosFiltrados.length);
+        } else {
+            console.log('Usuário é admin ou sistema - mostrando todos os agendamentos');
+        }
+        console.log('=== FIM DEBUG ===');
+        
         // Adicionar nome do paciente aos agendamentos
-        const agendamentosEnriquecidos = agendamentos.map(agendamento => {
+        const agendamentosEnriquecidos = agendamentosFiltrados.map(agendamento => {
             const paciente = pacientesData[agendamento.pacienteId];
             return {
                 ...agendamento,
@@ -1016,8 +1036,8 @@ app.get('/api/agendamentos', requireAuth, async (req, res) => {
         
         await logAuditoria(
             'LISTAR_AGENDAMENTOS',
-            req.session.usuario ? req.session.usuario.nome : 'sistema',
-            `Total de agendamentos: ${agendamentos.length}`,
+            req.session.user ? req.session.user.nomeCompleto : 'sistema',
+            `Total de agendamentos: ${agendamentosFiltrados.length} (próprios: ${req.session.user && req.session.user.tipo !== 'Administrador' ? 'sim' : 'todos'})`,
             req
         );
         
@@ -1026,7 +1046,7 @@ app.get('/api/agendamentos', requireAuth, async (req, res) => {
         console.error('Erro ao buscar agendamentos:', error);
         await logAuditoria(
             'ERRO_LISTAR_AGENDAMENTOS',
-            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            req.session.user ? req.session.user.nomeCompleto : 'sistema',
             `Erro: ${error.message}`,
             req
         );
@@ -1093,7 +1113,7 @@ app.post('/api/agendamentos', requireAuth, async (req, res) => {
             tipo,
             observacoes: observacoes || '',
             criadoEm: new Date().toISOString(),
-            criadoPor: req.session.usuario ? req.session.usuario.nome : 'sistema',
+            criadoPor: req.session.user ? req.session.user.nomeCompleto : 'sistema',
             status: 'agendado'
         };
         
@@ -1114,7 +1134,7 @@ app.post('/api/agendamentos', requireAuth, async (req, res) => {
         
         await logAuditoria(
             'CRIAR_AGENDAMENTO',
-            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            req.session.user ? req.session.user.nomeCompleto : 'sistema',
             `Agendamento criado para ${pacienteInfo.data.nomeCompleto} em ${data} às ${horario}`,
             req
         );
@@ -1124,7 +1144,7 @@ app.post('/api/agendamentos', requireAuth, async (req, res) => {
         console.error('Erro ao criar agendamento:', error);
         await logAuditoria(
             'ERRO_CRIAR_AGENDAMENTO',
-            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            req.session.user ? req.session.user.nomeCompleto : 'sistema',
             `Erro: ${error.message}`,
             req
         );
@@ -1152,6 +1172,15 @@ app.delete('/api/agendamentos/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Agendamento não encontrado' });
         }
         
+        // Verificar permissão - usuários só podem excluir próprios agendamentos
+        if (req.session.user && req.session.user.tipo !== 'Administrador') {
+            if (agendamento.criadoPor !== req.session.user.nomeCompleto) {
+                return res.status(403).json({ 
+                    error: 'Você só pode excluir seus próprios agendamentos' 
+                });
+            }
+        }
+        
         // Carregar dados do paciente para auditoria
         let nomePaciente = 'Desconhecido';
         try {
@@ -1175,7 +1204,7 @@ app.delete('/api/agendamentos/:id', requireAuth, async (req, res) => {
         
         await logAuditoria(
             'EXCLUIR_AGENDAMENTO',
-            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            req.session.user ? req.session.user.nomeCompleto : 'sistema',
             `Agendamento excluído: ${nomePaciente} em ${agendamento.data} às ${agendamento.horario}`,
             req
         );
@@ -1185,7 +1214,7 @@ app.delete('/api/agendamentos/:id', requireAuth, async (req, res) => {
         console.error('Erro ao excluir agendamento:', error);
         await logAuditoria(
             'ERRO_EXCLUIR_AGENDAMENTO',
-            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            req.session.user ? req.session.user.nomeCompleto : 'sistema',
             `Erro: ${error.message}`,
             req
         );

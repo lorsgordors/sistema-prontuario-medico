@@ -2009,6 +2009,12 @@ class ProntuarioApp {
         }
     }
     
+    editarAgendamento(agendamentoId) {
+        // TODO: Implementar edição de agendamentos
+        this.showMessage('Funcionalidade de edição será implementada em breve', 'info');
+        console.log('Editar agendamento ID:', agendamentoId);
+    }
+    
     // Utilitários
     
     showLoadingIndicator(message = 'Carregando...') {
