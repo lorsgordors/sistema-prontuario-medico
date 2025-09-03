@@ -1008,22 +1008,11 @@ app.get('/api/agendamentos', requireAuth, async (req, res) => {
         // Filtrar agendamentos por usuário (não administradores veem apenas os próprios)
         let agendamentosFiltrados = agendamentos;
         
-        console.log('=== DEBUG AGENDAMENTOS ===');
-        console.log('Total de agendamentos no arquivo:', agendamentos.length);
-        console.log('Usuário logado:', req.session.user ? req.session.user.nomeCompleto : 'NENHUM');
-        console.log('Tipo de usuário:', req.session.user ? req.session.user.tipo : 'NENHUM');
-        
         if (req.session.user && req.session.user.tipo !== 'Administrador') {
-            console.log('Filtrando agendamentos para usuário não-admin...');
             agendamentosFiltrados = agendamentos.filter(agendamento => {
-                console.log(`Agendamento ID ${agendamento.id}: criadoPor="${agendamento.criadoPor}" vs usuário="${req.session.user.nomeCompleto}"`);
                 return agendamento.criadoPor === req.session.user.nomeCompleto;
             });
-            console.log('Agendamentos após filtro:', agendamentosFiltrados.length);
-        } else {
-            console.log('Usuário é admin ou sistema - mostrando todos os agendamentos');
         }
-        console.log('=== FIM DEBUG ===');
         
         // Adicionar nome do paciente aos agendamentos
         const agendamentosEnriquecidos = agendamentosFiltrados.map(agendamento => {
@@ -1359,6 +1348,118 @@ function startServerLorsgordors(port) {
     return server;
 }
 
+// Função para limpar agendamentos expirados automaticamente
+async function limparAgendamentosExpirados() {
+    try {
+        let agendamentos = [];
+        
+        try {
+            agendamentos = await fetchJsonFromGithub('agendamentos.json');
+        } catch (error) {
+            // Se não existe arquivo, não há nada para limpar
+            console.log('📂 Arquivo agendamentos.json não existe ainda');
+            return;
+        }
+        
+        if (!Array.isArray(agendamentos)) {
+            console.log('⚠️ Dados de agendamentos não são um array válido');
+            return;
+        }
+        
+        console.log(`🔍 Verificando ${agendamentos.length} agendamentos para limpeza...`);
+        
+        // Obter data e hora atual local
+        const agora = new Date();
+        console.log(`⏰ Data/Hora atual: ${agora.toLocaleString('pt-BR')}`);
+        
+        const agendamentosIniciais = agendamentos.length;
+        
+        // Filtrar agendamentos não expirados
+        const agendamentosValidos = agendamentos.filter(agendamento => {
+            try {
+                // Combinar data e hora do agendamento
+                const [ano, mes, dia] = agendamento.data.split('-').map(Number);
+                const [hora, minuto] = agendamento.horario.split(':').map(Number);
+                
+                // Criar data/hora do agendamento
+                const dataAgendamento = new Date(ano, mes - 1, dia, hora, minuto);
+                
+                console.log(`📅 Agendamento ID ${agendamento.id}: ${agendamento.data} ${agendamento.horario} (${dataAgendamento.toLocaleString('pt-BR')})`);
+                
+                // Se o agendamento já passou, deve ser removido
+                const expirado = dataAgendamento < agora;
+                
+                if (expirado) {
+                    console.log(`🗑️ Removendo agendamento expirado: ${agendamento.data} ${agendamento.horario} (${agendamento.pacienteNome || 'Paciente'})`);
+                } else {
+                    console.log(`✅ Agendamento válido: ${agendamento.data} ${agendamento.horario}`);
+                }
+                
+                return !expirado;
+            } catch (error) {
+                console.error(`❌ Erro ao processar agendamento ${agendamento.id}:`, error);
+                // Em caso de erro, manter o agendamento para não perder dados
+                return true;
+            }
+        });
+        
+        const removidos = agendamentosIniciais - agendamentosValidos.length;
+        
+        console.log(`📊 Resultado: ${removidos} agendamento(s) para remover de ${agendamentosIniciais} total`);
+        
+        // Se houve remoções, salvar a lista atualizada
+        if (removidos > 0) {
+            await saveJsonToGithub(
+                'agendamentos.json',
+                agendamentosValidos,
+                `Limpeza automática: ${removidos} agendamento(s) expirado(s) removido(s)`
+            );
+            
+            await logAuditoria(
+                'LIMPEZA_AUTOMATICA',
+                'sistema',
+                `${removidos} agendamento(s) expirado(s) removido(s) automaticamente`,
+                null
+            );
+            
+            console.log(`✅ Limpeza automática concluída: ${removidos} agendamento(s) removido(s)`);
+        } else {
+            console.log(`✅ Nenhum agendamento expirado encontrado`);
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro na limpeza automática de agendamentos:', error);
+        
+        try {
+            await logAuditoria(
+                'ERRO_LIMPEZA_AUTOMATICA',
+                'sistema',
+                `Erro na limpeza automática: ${error.message}`,
+                null
+            );
+        } catch (logError) {
+            console.error('Erro ao registrar log de erro:', logError);
+        }
+    }
+}
+
+// Inicializar limpeza automática (roda a cada 5 minutos)
+function iniciarLimpezaAutomatica() {
+    console.log('🧹 Limpeza automática de agendamentos iniciada (a cada 5 minutos)');
+    
+    // Executar uma vez na inicialização
+    setTimeout(() => {
+        console.log('🧹 Executando primeira limpeza automática...');
+        limparAgendamentosExpirados();
+    }, 30000); // 30 segundos para o servidor estar pronto
+    
+    // Depois executar a cada 5 minutos
+    setInterval(() => {
+        console.log('🧹 Executando limpeza automática periódica...');
+        limparAgendamentosExpirados();
+    }, 5 * 60 * 1000); // 5 minutos em milissegundos
+}
+
 // Inicialização do sistema para lorsgordors
 ensureGitHubInit().then(() => {
     const PORT = process.env.PORT || 3000;
@@ -1368,4 +1469,7 @@ ensureGitHubInit().then(() => {
     console.log('📁 Usando GitHub como banco de dados...');
     
     startServerLorsgordors(PORT);
+    
+    // Iniciar limpeza automática de agendamentos expirados
+    iniciarLimpezaAutomatica();
 });
