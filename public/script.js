@@ -1,4 +1,18 @@
 class ProntuarioApp {
+    constructor() {
+        this.currentUser = null;
+        this.currentPaciente = null;
+        this.pacientes = [];
+        this.cache = {
+            lastPacientesLoad: 0,
+            lastEstatisticasLoad: 0,
+            cacheDuration: 30000 // 30 segundos
+        };
+        
+        // Inicializar event listeners
+        this.initEventListeners();
+    }
+    
     showEditarPacienteModal() {
         const paciente = this.currentPaciente;
         if (!paciente) return;
@@ -33,17 +47,8 @@ class ProntuarioApp {
                 document.getElementById('editarUsuarioModal').classList.remove('hidden');
             });
     }
-    constructor() {
-        this.currentUser = null;
-        this.currentPaciente = null;
-        this.pacientes = [];
-        this.tiposRegistro = [];
-        
-        this.init();
-    }
     
-    init() {
-        this.setupEventListeners();
+    initEventListeners() {
         this.loadTiposRegistro();
         this.checkAuth();
     }
@@ -74,7 +79,7 @@ class ProntuarioApp {
         }
     }
     
-    setupEventListeners() {
+    initEventListeners() {
         // Editar paciente - abrir modal
         document.getElementById('editarPacienteBtn').addEventListener('click', () => {
             this.showEditarPacienteModal();
@@ -104,10 +109,22 @@ class ProntuarioApp {
                     body: JSON.stringify({ nomeCompleto, cpf, dataNascimento, telefone, email, endereco, alergias, medicamentos, comorbidades })
                 });
                 if (response.ok) {
+                    const updatedPaciente = await response.json();
                     this.showMessage('Paciente editado com sucesso!', 'success');
                     document.getElementById('editarPacienteModal').classList.add('hidden');
-                    this.showPacienteDetails(id);
-                    this.loadPacientes();
+                    
+                    // Atualizar dados localmente sem recarregar
+                    this.currentPaciente = updatedPaciente;
+                    this.renderPacienteDetails();
+                    
+                    // Atualizar na lista de pacientes se estiver carregada
+                    if (this.pacientes && this.pacientes.length > 0) {
+                        const index = this.pacientes.findIndex(p => p.id === id);
+                        if (index !== -1) {
+                            this.pacientes[index] = updatedPaciente;
+                            this.renderPacientes(this.pacientes);
+                        }
+                    }
                 } else {
                     const error = await response.json();
                     this.showMessage(error.error || 'Erro ao editar paciente', 'error');
@@ -511,6 +528,7 @@ class ProntuarioApp {
     async handleExcluirPaciente() {
         const form = document.getElementById('excluirPacienteForm');
         const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
         
         const senha = formData.get('senha');
         const confirmacao = formData.get('confirmacao');
@@ -524,6 +542,16 @@ class ProntuarioApp {
         if (!senha.trim()) {
             this.showMessage('Digite sua senha para confirmar', 'error');
             return;
+        }
+
+        // Adicionar loading ao botão
+        submitBtn.classList.add('loading');
+        submitBtn.innerHTML = '<span class="btn-text">Excluindo...</span>';
+        
+        // Adicionar classe deleting ao card do paciente se estiver visível
+        const pacienteCard = document.querySelector(`[onclick="app.showPacienteDetails(${this.currentPaciente.id})"]`);
+        if (pacienteCard) {
+            pacienteCard.classList.add('deleting');
         }
         
         try {
@@ -543,27 +571,91 @@ class ProntuarioApp {
                     'success'
                 );
                 this.hideExcluirPacienteModal();
-                this.switchTab('pacientes');
-                this.loadPacientes();
+                
+                // Remover paciente da lista local sem recarregar
+                this.pacientes = this.pacientes.filter(p => p.id !== this.currentPaciente.id);
+                
+                // Voltar para lista de pacientes e renderizar
+                await this.switchTab('pacientes');
             } else {
+                // Remover loading states em caso de erro
+                if (pacienteCard) {
+                    pacienteCard.classList.remove('deleting');
+                }
                 this.showMessage(result.error || 'Erro ao excluir paciente', 'error');
             }
         } catch (error) {
             console.error('Erro:', error);
+            // Remover loading states em caso de erro
+            if (pacienteCard) {
+                pacienteCard.classList.remove('deleting');
+            }
             this.showMessage('Erro de conexão ao excluir paciente', 'error');
+        } finally {
+            // Restaurar botão
+            submitBtn.classList.remove('loading');
+            submitBtn.innerHTML = '<span class="btn-text">🗑️ Confirmar Exclusão</span>';
         }
     }
     
-    async loadEstatisticas() {
+    async loadEstatisticas(forceReload = false) {
+        const now = Date.now();
+        
+        // Verificar cache se não for reload forçado
+        if (!forceReload && 
+            this.lastStats && 
+            (now - this.cache.lastEstatisticasLoad) < this.cache.cacheDuration) {
+            // Usar dados do cache
+            this.renderEstatisticas(this.lastStats);
+            return;
+        }
+        
+        // Mostrar skeleton loading apenas se não há dados em cache
+        if (!this.lastStats) {
+            this.showStatsSkeleton();
+        }
+        
         try {
             const response = await fetch('/api/estatisticas');
             if (response.ok) {
                 const stats = await response.json();
+                this.lastStats = stats;
+                this.cache.lastEstatisticasLoad = now;
                 this.renderEstatisticas(stats);
             }
         } catch (error) {
             console.error('Erro ao carregar estatísticas:', error);
+            if (!this.lastStats) {
+                document.getElementById('statsCards').innerHTML = `
+                    <div class="stat-card error">
+                        <div class="stat-number">❌</div>
+                        <div class="stat-label">Erro ao carregar</div>
+                    </div>
+                `;
+            }
         }
+    }
+    
+    showStatsSkeleton() {
+        const container = document.getElementById('statsCards');
+        container.innerHTML = `
+            <div class="stat-card skeleton-card">
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text medium"></div>
+            </div>
+            <div class="stat-card skeleton-card">
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text medium"></div>
+            </div>
+            <div class="stat-card skeleton-card">
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text medium"></div>
+            </div>
+            <div class="stat-card skeleton-card">
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text medium"></div>
+            </div>
+        `;
     }
     
     renderEstatisticas(stats) {
@@ -640,9 +732,10 @@ class ProntuarioApp {
             usuariosTabBtn.style.display = 'none';
             logsTabBtn.style.display = 'none';
         }
-        // Carregar dados
+        
+        // Carregar dados da aba inicial apenas (aba 'meuPerfil' está ativa por padrão)
+        // Os dados das outras abas serão carregados quando o usuário clicar nelas
         this.loadEstatisticas();
-        this.loadPacientes();
     }
     
     showRegistrarUsuarioModal() {
@@ -671,30 +764,45 @@ class ProntuarioApp {
         document.getElementById('excluirPacienteModal').classList.add('hidden');
     }
     
-    switchTab(tabName) {
+    async switchTab(tabName) {
+        // Adicionar loading ao botão da aba atual
+        const currentBtn = document.querySelector(`[data-tab="${tabName}"]`);
+        if (currentBtn) {
+            currentBtn.classList.add('loading');
+        }
+        
         // Atualizar navegação
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
         
-        // Mostrar conteúdo
+        // Mostrar conteúdo imediatamente
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
         });
         document.getElementById(tabName).classList.add('active');
         
-        // Ações específicas
-        if (tabName === 'pacientes') {
-            this.loadPacientes();
-        } else if (tabName === 'meuPerfil') {
-            this.loadEstatisticas();
-        } else if (tabName === 'arrecadacao') {
-            this.loadArrecadacao();
-        } else if (tabName === 'usuarios' && this.currentUser.tipo === 'Administrador') {
-            this.loadUsuarios();
-        } else if (tabName === 'logs' && this.currentUser.tipo === 'Administrador') {
-            this.loadLogStats();
+        // Ações específicas com loading (SEM delay desnecessário)
+        try {
+            if (tabName === 'pacientes') {
+                await this.loadPacientes();
+            } else if (tabName === 'meuPerfil') {
+                await this.loadEstatisticas();
+            } else if (tabName === 'arrecadacao') {
+                await this.loadArrecadacao();
+            } else if (tabName === 'usuarios' && this.currentUser.tipo === 'Administrador') {
+                await this.loadUsuarios();
+            } else if (tabName === 'logs' && this.currentUser.tipo === 'Administrador') {
+                await this.loadLogStats();
+            }
+        } catch (error) {
+            console.error('Erro ao carregar aba:', error);
+        }
+        
+        // Remover loading e ativar aba
+        if (currentBtn) {
+            currentBtn.classList.remove('loading');
+            currentBtn.classList.add('active');
         }
     }
 
@@ -743,6 +851,20 @@ class ProntuarioApp {
             comorbidades: formData.get('comorbidades')
         };
         
+        // Criar paciente temporário com status pendente
+        const tempPaciente = {
+            ...pacienteData,
+            id: 'temp_' + Date.now(),
+            status: 'pending', // Status para indicar que está sendo enviado
+            criadoEm: new Date().toISOString(),
+            atendimentos: []
+        };
+        
+        // Adicionar paciente temporário à lista imediatamente
+        this.pacientes = this.pacientes || [];
+        this.pacientes.unshift(tempPaciente);
+        this.renderPacientes(this.pacientes);
+        
         try {
             const response = await fetch('/api/pacientes', {
                 method: 'POST',
@@ -753,31 +875,121 @@ class ProntuarioApp {
             });
             
             if (response.ok) {
+                const pacienteReal = await response.json();
+                
+                // Substituir paciente temporário pelo real
+                const tempIndex = this.pacientes.findIndex(p => p.id === tempPaciente.id);
+                if (tempIndex !== -1) {
+                    this.pacientes[tempIndex] = {
+                        ...pacienteReal,
+                        status: 'confirmed' // Status confirmado
+                    };
+                    this.renderPacientes(this.pacientes);
+                }
+                
                 this.showMessage('Paciente cadastrado com sucesso!', 'success');
                 form.reset();
-                this.loadPacientes();
-                this.loadEstatisticas(); // Atualizar estatísticas
+                
+                // Invalidar cache de estatísticas para refletir novo paciente
+                this.invalidateCache('estatisticas');
+                this.loadEstatisticas(true); // Force reload das estatísticas
                 this.switchTab('pacientes');
+                
+                // Após 2 segundos, remove o status para comportamento normal
+                setTimeout(() => {
+                    if (this.pacientes[tempIndex]) {
+                        delete this.pacientes[tempIndex].status;
+                        this.renderPacientes(this.pacientes);
+                    }
+                }, 2000);
+                
             } else {
+                // Remover paciente temporário em caso de erro
+                this.pacientes = this.pacientes.filter(p => p.id !== tempPaciente.id);
+                this.renderPacientes(this.pacientes);
+                
                 const error = await response.json();
                 this.showMessage(error.error, 'error');
             }
         } catch (error) {
+            // Remover paciente temporário em caso de erro
+            this.pacientes = this.pacientes.filter(p => p.id !== tempPaciente.id);
+            this.renderPacientes(this.pacientes);
+            
             this.showMessage('Erro ao cadastrar paciente', 'error');
         }
     }
     
-    async loadPacientes() {
+    async loadPacientes(forceReload = false) {
+        const now = Date.now();
+        
+        // Verificar cache se não for reload forçado
+        if (!forceReload && 
+            this.pacientes.length > 0 && 
+            (now - this.cache.lastPacientesLoad) < this.cache.cacheDuration) {
+            // Usar dados do cache
+            this.renderPacientes(this.pacientes);
+            return;
+        }
+        
+        // Mostrar skeleton loading apenas se não há dados em cache
+        if (this.pacientes.length === 0) {
+            this.showSkeletonLoading('pacientesList');
+        }
+        
         try {
             const response = await fetch('/api/pacientes');
             if (response.ok) {
                 this.pacientes = await response.json();
+                this.cache.lastPacientesLoad = now;
                 this.renderPacientes(this.pacientes);
             } else {
-                this.showMessage('Erro ao carregar pacientes', 'error');
+                document.getElementById('pacientesList').innerHTML = `
+                    <div class="text-center" style="padding: 40px; color: #ef4444;">
+                        ❌ Erro ao carregar pacientes
+                    </div>
+                `;
             }
         } catch (error) {
-            this.showMessage('Erro de conexão', 'error');
+            document.getElementById('pacientesList').innerHTML = `
+                <div class="text-center" style="padding: 40px; color: #ef4444;">
+                    📡 Erro de conexão
+                </div>
+            `;
+        }
+    }
+    
+    showSkeletonLoading(containerId, count = 3) {
+        const container = document.getElementById(containerId);
+        const skeletonItems = [];
+        
+        for (let i = 0; i < count; i++) {
+            skeletonItems.push(`
+                <div class="paciente-card skeleton-card">
+                    <div class="paciente-header">
+                        <div class="skeleton skeleton-text medium"></div>
+                        <div class="skeleton skeleton-text short"></div>
+                    </div>
+                    <div class="paciente-info">
+                        <div class="skeleton skeleton-text long"></div>
+                        <div class="skeleton skeleton-text medium"></div>
+                        <div class="skeleton skeleton-text short"></div>
+                        <div class="skeleton skeleton-text long"></div>
+                    </div>
+                </div>
+            `);
+        }
+        
+        container.innerHTML = skeletonItems.join('');
+    }
+    
+    // Cache management
+    invalidateCache(type = 'all') {
+        if (type === 'all' || type === 'pacientes') {
+            this.cache.lastPacientesLoad = 0;
+        }
+        if (type === 'all' || type === 'estatisticas') {
+            this.cache.lastEstatisticasLoad = 0;
         }
     }
     
@@ -817,10 +1029,24 @@ class ProntuarioApp {
             const isOwn = paciente.criadoPorId === this.currentUser.id;
             const cardClass = isAdmin ? (isOwn ? 'paciente-card own' : 'paciente-card admin-view') : 'paciente-card own';
             
+            // Status indicator logic
+            let statusIcon = '';
+            let statusClass = '';
+            if (paciente.status === 'pending') {
+                statusIcon = '⏱️';
+                statusClass = 'status-pending';
+            } else if (paciente.status === 'confirmed') {
+                statusIcon = '✅';
+                statusClass = 'status-confirmed';
+            }
+            
             return `
                 <div class="${cardClass}" onclick="app.showPacienteDetails(${paciente.id})">
                     <div class="paciente-header">
-                        <div class="paciente-nome">${paciente.nomeCompleto}</div>
+                        <div class="paciente-nome">
+                            ${paciente.nomeCompleto}
+                            ${statusIcon ? `<span class="status-indicator ${statusClass}">${statusIcon}</span>` : ''}
+                        </div>
                         <div style="color: #667eea; font-weight: 500;">
                             ${paciente.atendimentos ? paciente.atendimentos.length : 0} atendimento(s)
                         </div>
@@ -857,19 +1083,100 @@ class ProntuarioApp {
     }
     
     async showPacienteDetails(pacienteId) {
+        // Mostrar skeleton loading para detalhes do paciente
+        this.showPatientDetailsSkeleton();
+        this.switchToDetalhePaciente();
+        
         try {
             const response = await fetch(`/api/pacientes/${pacienteId}`);
             if (response.ok) {
                 this.currentPaciente = await response.json();
+                // Renderizar diretamente sem delay
                 this.renderPacienteDetails();
-                this.switchToDetalhePaciente();
             } else {
                 const error = await response.json();
                 this.showMessage(error.error || 'Erro ao carregar detalhes do paciente', 'error');
+                this.showPatientDetailsError();
             }
         } catch (error) {
             this.showMessage('Erro de conexão', 'error');
+            this.showPatientDetailsError();
         }
+    }
+    
+    showPatientDetailsSkeleton() {
+        const infoContainer = document.getElementById('pacienteInfoContent');
+        const atendimentosContainer = document.getElementById('atendimentosList');
+        
+        // Skeleton para informações do paciente
+        infoContainer.innerHTML = `
+            <div class="profile-info">
+                <div class="info-item">
+                    <div class="skeleton skeleton-text medium"></div>
+                    <div class="skeleton skeleton-text long"></div>
+                </div>
+                <div class="info-item">
+                    <div class="skeleton skeleton-text short"></div>
+                    <div class="skeleton skeleton-text medium"></div>
+                </div>
+                <div class="info-item">
+                    <div class="skeleton skeleton-text medium"></div>
+                    <div class="skeleton skeleton-text short"></div>
+                </div>
+                <div class="info-item">
+                    <div class="skeleton skeleton-text short"></div>
+                    <div class="skeleton skeleton-text long"></div>
+                </div>
+            </div>
+            
+            <div class="medical-info-display">
+                <div class="skeleton skeleton-text medium" style="margin-bottom: 20px;"></div>
+                <div class="medical-card">
+                    <div class="skeleton skeleton-text long"></div>
+                    <div class="skeleton skeleton-text medium"></div>
+                </div>
+                <div class="medical-card">
+                    <div class="skeleton skeleton-text long"></div>
+                    <div class="skeleton skeleton-text short"></div>
+                </div>
+                <div class="medical-card">
+                    <div class="skeleton skeleton-text long"></div>
+                    <div class="skeleton skeleton-text medium"></div>
+                </div>
+            </div>
+        `;
+        
+        // Skeleton para atendimentos
+        const skeletonAtendimentos = [];
+        for (let i = 0; i < 2; i++) {
+            skeletonAtendimentos.push(`
+                <div class="atendimento-item skeleton-card">
+                    <div class="atendimento-header">
+                        <div style="flex: 1;">
+                            <div class="skeleton skeleton-text medium" style="margin-bottom: 8px;"></div>
+                            <div class="skeleton skeleton-text short"></div>
+                        </div>
+                        <div class="skeleton skeleton-text short"></div>
+                    </div>
+                    <div class="skeleton skeleton-text long" style="margin-bottom: 8px;"></div>
+                    <div class="skeleton skeleton-text medium"></div>
+                </div>
+            `);
+        }
+        atendimentosContainer.innerHTML = skeletonAtendimentos.join('');
+    }
+    
+    showPatientDetailsError() {
+        document.getElementById('pacienteInfoContent').innerHTML = `
+            <div class="text-center" style="padding: 40px; color: #ef4444;">
+                ❌ Erro ao carregar detalhes do paciente
+            </div>
+        `;
+        document.getElementById('atendimentosList').innerHTML = `
+            <div class="text-center" style="padding: 30px; color: #ef4444;">
+                📡 Erro ao carregar atendimentos
+            </div>
+        `;
     }
     
     switchToDetalhePaciente() {
@@ -980,12 +1287,25 @@ class ProntuarioApp {
             new Date(b.data + ' ' + b.horario) - new Date(a.data + ' ' + a.horario)
         );
         
-        container.innerHTML = atendimentosOrdenados.map(atendimento => `
+        container.innerHTML = atendimentosOrdenados.map(atendimento => {
+            // Status indicator logic
+            let statusIcon = '';
+            let statusClass = '';
+            if (atendimento.status === 'pending') {
+                statusIcon = '⏱️';
+                statusClass = 'status-pending';
+            } else if (atendimento.status === 'confirmed') {
+                statusIcon = '✅';
+                statusClass = 'status-confirmed';
+            }
+            
+            return `
             <div class="atendimento-item">
                 <div class="atendimento-header">
                     <div class="atendimento-info">
-                        <div class="atendimento-titulo" style="font-weight: bold; color: #667eea; font-size: 1.1em;">
+                        <div class="atendimento-titulo" style="font-weight: bold; color: #667eea; font-size: 1.1em; display: flex; align-items: center;">
                             ${atendimento.titulo || 'Atendimento'}
+                            ${statusIcon ? `<span class="status-indicator ${statusClass}" style="margin-left: 8px; font-size: 0.9em;">${statusIcon}</span>` : ''}
                         </div>
                         <div class="atendimento-meta">
                             <span class="atendimento-data">
@@ -1012,7 +1332,8 @@ class ProntuarioApp {
                     ${atendimento.profissionalEstado ? ` - ${atendimento.profissionalEstado}` : ''}
                 </div>
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
     
     showAtendimentoForm() {
@@ -1103,6 +1424,21 @@ class ProntuarioApp {
                 atendimentoData.sinaisVitais = sinaisVitais;
             }
         }
+
+        // Optimistic UI: Create temporary appointment and show immediately
+        const tempAtendimento = {
+            id: Date.now() + '_temp',
+            ...atendimentoData,
+            status: 'pending',
+            data: this.formatDate(atendimentoData.data),
+            criadoPorId: this.currentUser.id,
+            criadoPor: this.currentUser.nome
+        };
+
+        // Add to current patient's appointments for immediate display
+        this.currentPaciente.atendimentos = this.currentPaciente.atendimentos || [];
+        this.currentPaciente.atendimentos.unshift(tempAtendimento);
+        this.renderPacienteDetails(); // Show immediately
         
         try {
             const response = await fetch(`/api/pacientes/${this.currentPaciente.id}/atendimentos`, {
@@ -1114,16 +1450,40 @@ class ProntuarioApp {
             });
             
             if (response.ok) {
+                // Replace temporary appointment with confirmed one
+                const confirmedAtendimento = await response.json();
+                confirmedAtendimento.status = 'confirmed';
+                
+                const tempIndex = this.currentPaciente.atendimentos.findIndex(a => a.id === tempAtendimento.id);
+                if (tempIndex !== -1) {
+                    this.currentPaciente.atendimentos[tempIndex] = confirmedAtendimento;
+                    this.renderPacienteDetails(); // Update with confirmed status
+                    
+                    // Auto-remove status indicator after 2 seconds
+                    setTimeout(() => {
+                        delete confirmedAtendimento.status;
+                        this.renderPacienteDetails();
+                    }, 2000);
+                }
+                
                 this.showMessage('Atendimento registrado com sucesso!', 'success');
                 this.hideAtendimentoForm();
-                // Recarregar detalhes do paciente
-                this.showPacienteDetails(this.currentPaciente.id);
-                this.loadEstatisticas(); // Atualizar estatísticas
+                
+                // Invalidar e recarregar estatísticas
+                this.invalidateCache('estatisticas');
+                this.loadEstatisticas(true);
             } else {
+                // Remove temporary appointment on error
+                this.currentPaciente.atendimentos = this.currentPaciente.atendimentos.filter(a => a.id !== tempAtendimento.id);
+                this.renderPacienteDetails();
+                
                 const error = await response.json();
                 this.showMessage(error.error, 'error');
             }
         } catch (error) {
+            // Remove temporary appointment on error
+            this.currentPaciente.atendimentos = this.currentPaciente.atendimentos.filter(a => a.id !== tempAtendimento.id);
+            this.renderPacienteDetails();
             this.showMessage('Erro ao registrar atendimento', 'error');
         }
     }
@@ -1159,6 +1519,12 @@ class ProntuarioApp {
     }
     
     async excluirAtendimento(atendimentoId) {
+        // Encontrar o elemento do atendimento e adicionar loading
+        const atendimentoElement = document.querySelector(`[onclick="app.confirmarExclusaoAtendimento('${atendimentoId}')"]`)?.closest('.atendimento-item');
+        if (atendimentoElement) {
+            atendimentoElement.classList.add('deleting');
+        }
+        
         try {
             const response = await fetch(`/api/pacientes/${this.currentPaciente.id}/atendimentos/${atendimentoId}`, {
                 method: 'DELETE',
@@ -1169,15 +1535,50 @@ class ProntuarioApp {
             
             if (response.ok) {
                 this.showMessage('Atendimento excluído com sucesso!', 'success');
-                // Recarregar detalhes do paciente
-                this.showPacienteDetails(this.currentPaciente.id);
-                this.loadEstatisticas(); // Atualizar estatísticas
+                
+                // Remover atendimento localmente sem recarregar do servidor
+                if (this.currentPaciente.atendimentos) {
+                    const atendimentosAnteriores = this.currentPaciente.atendimentos.length;
+                    
+                    // Garantir que a comparação seja feita corretamente (string e number)
+                    this.currentPaciente.atendimentos = this.currentPaciente.atendimentos.filter(
+                        a => a.id != atendimentoId // Usar != para comparar string/number
+                    );
+                    
+                    console.log(`Atendimentos: ${atendimentosAnteriores} → ${this.currentPaciente.atendimentos.length}`);
+                    
+                    // Verificar se realmente removeu
+                    if (this.currentPaciente.atendimentos.length === atendimentosAnteriores) {
+                        console.warn('Atendimento não foi removido da lista local. ID:', atendimentoId);
+                        console.warn('IDs disponíveis:', this.currentPaciente.atendimentos.map(a => `${a.id} (${typeof a.id})`));
+                    }
+                }
+                
+                // Re-renderizar imediatamente a lista de atendimentos
+                this.renderAtendimentos();
+                
+                // Forçar uma segunda renderização após 100ms para garantir
+                setTimeout(() => {
+                    this.renderAtendimentos();
+                }, 100);
+                
+                // Invalidar e atualizar estatísticas em background
+                this.invalidateCache('estatisticas');
+                this.loadEstatisticas(true);
             } else {
                 const error = await response.json();
+                // Remover loading em caso de erro
+                if (atendimentoElement) {
+                    atendimentoElement.classList.remove('deleting');
+                }
                 this.showMessage(error.error, 'error');
             }
         } catch (error) {
             console.error('Erro ao excluir atendimento:', error);
+            // Remover loading em caso de erro
+            if (atendimentoElement) {
+                atendimentoElement.classList.remove('deleting');
+            }
             this.showMessage('Erro ao excluir atendimento', 'error');
         }
     }
@@ -1980,8 +2381,18 @@ class ProntuarioApp {
     }
 }
 
-// Inicializar aplicação
-const app = new ProntuarioApp();
+// Inicializar aplicação quando DOM estiver pronto
+document.addEventListener('DOMContentLoaded', function() {
+    const app = new ProntuarioApp();
+    // Expor globalmente para uso em onclick
+    window.app = app;
+});
 
-// Expor globalmente para uso em onclick
-window.app = app;
+// Fallback caso DOMContentLoaded já tenha disparado
+if (document.readyState === 'loading') {
+    // DOMContentLoaded ainda não disparou
+} else {
+    // DOM já está pronto
+    const app = new ProntuarioApp();
+    window.app = app;
+}
