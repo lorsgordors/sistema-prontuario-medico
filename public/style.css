@@ -3186,3 +3186,331 @@ button:focus,
         grid-template-columns: 1fr;
     }
 }
+
+/* === AGENDA/CALENDÁRIO === */
+.agenda-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.mes-display {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-purple);
+    min-width: 200px;
+    text-align: center;
+}
+
+.agenda-dica {
+    background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+    border: 1px solid #90caf9;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-top: 15px;
+    font-size: 13px;
+    color: #1565c0;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.agenda-dica strong {
+    color: #0d47a1;
+}
+
+.calendario-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.calendario-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--light-gray);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1px;
+}
+
+.dia-semana {
+    background: var(--primary-purple);
+    color: white;
+    padding: 15px 5px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: var(--light-gray);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.dia-calendario {
+    background: white;
+    min-height: 80px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.dia-calendario:hover {
+    background: var(--off-white);
+    transform: scale(1.02);
+}
+
+.dia-calendario.outro-mes {
+    background: #f9f9f9;
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+.dia-calendario.hoje {
+    background: var(--light-purple);
+    border: 2px solid var(--primary-purple);
+    font-weight: bold;
+}
+
+.dia-calendario.selecionado {
+    background: var(--secondary-purple);
+    color: white;
+}
+
+.numero-dia {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.indicador-agendamentos {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #3b82f6;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.agendamentos-preview {
+    font-size: 0.65rem;
+    color: var(--primary-purple);
+    margin-top: 2px;
+    overflow: hidden;
+    line-height: 1.1;
+    max-width: 100%;
+    text-align: center;
+    font-weight: 500;
+    max-height: 35px;
+}
+
+.agendamentos-do-dia {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.agendamentos-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Botão Novo Agendamento */
+.btn-novo-agendamento {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-novo-agendamento:hover {
+    background: linear-gradient(45deg, #0056b3, #004494);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.btn-novo-agendamento:active {
+    transform: translateY(0);
+}
+
+.agendamento-item {
+    background: var(--off-white);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--primary-purple);
+    transition: all 0.3s ease;
+}
+
+.agendamento-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.agendamento-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.agendamento-horario {
+    font-weight: bold;
+    color: var(--primary-purple);
+    font-size: 1.1rem;
+}
+
+.agendamento-paciente {
+    font-weight: 600;
+    color: var(--primary-black);
+    margin-bottom: 5px;
+}
+
+.agendamento-tipo {
+    color: var(--medium-gray);
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.agendamento-observacoes {
+    color: var(--medium-gray);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.agendamento-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-agendamento {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-editar-agendamento {
+    background: var(--secondary-purple);
+    color: white;
+}
+
+.btn-editar-agendamento:hover {
+    background: var(--primary-purple);
+}
+
+.btn-excluir-agendamento {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-excluir-agendamento:hover {
+    background: #dc2626;
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--medium-gray);
+    font-style: italic;
+    padding: 40px 0;
+}
+
+/* Responsive Calendário */
+@media (max-width: 768px) {
+    .calendario-container {
+        padding: 10px;
+    }
+    
+    .dia-calendario {
+        min-height: 60px;
+        padding: 5px;
+    }
+    
+    .numero-dia {
+        font-size: 0.9rem;
+    }
+    
+    .indicador-agendamentos {
+        width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+    }
+    
+    .agendamentos-preview {
+        font-size: 0.55rem;
+        max-height: 20px;
+        line-height: 1;
+    }
+    
+    .agenda-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .mes-display {
+        min-width: auto;
+    }
+}
+
+/* ===== LOADING INDICATOR ===== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 4px solid rgba(0, 123, 255, 0.1);
+    border-top: 4px solid #007bff;
+    animation: spin 1s linear infinite;
+}
+
+.loading-text {
+    display: none;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

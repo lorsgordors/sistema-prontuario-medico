@@ -55,6 +55,7 @@
             <button class="nav-btn active" data-tab="meuPerfil">👤 Meu Perfil</button>
             <button class="nav-btn" data-tab="pacientes">👥 Pacientes</button>
             <button class="nav-btn" data-tab="cadastroPaciente">➕ Novo Paciente</button>
+            <button class="nav-btn" data-tab="agenda">📅 Agenda</button>
             <button class="nav-btn" data-tab="arrecadacao">💰 Arrecadação</button>
             <button class="nav-btn" data-tab="usuarios" id="usuariosTabBtn" style="display:none">👥 Usuários</button>
             <button class="nav-btn" data-tab="logs" id="logsTabBtn" style="display:none">📋 Logs</button>
@@ -341,6 +342,43 @@
                     </div>
                     <div id="detalhesArrecadacao" class="details-list">
                         <!-- Detalhes serão carregados aqui -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aba Agenda -->
+            <section id="agenda" class="tab-content">
+                <div class="content-header">
+                    <h2>📅 Agenda de Atendimentos</h2>
+                    <div class="agenda-controls">
+                        <button id="voltarMesBtn" class="btn btn-secondary">◀ Anterior</button>
+                        <span id="mesAtual" class="mes-display"></span>
+                        <button id="proximoMesBtn" class="btn btn-secondary">Próximo ▶</button>
+                    </div>
+                    <div class="agenda-dica">
+                        💡 <strong>Dica:</strong> Clique simples = selecionar dia | Duplo clique = novo agendamento
+                    </div>
+                </div>
+
+                <div class="calendario-container">
+                    <div class="calendario-header">
+                        <div class="dia-semana">Dom</div>
+                        <div class="dia-semana">Seg</div>
+                        <div class="dia-semana">Ter</div>
+                        <div class="dia-semana">Qua</div>
+                        <div class="dia-semana">Qui</div>
+                        <div class="dia-semana">Sex</div>
+                        <div class="dia-semana">Sáb</div>
+                    </div>
+                    <div id="calendarioGrid" class="calendario-grid">
+                        <!-- Dias do calendário serão gerados aqui -->
+                    </div>
+                </div>
+
+                <div class="agendamentos-do-dia">
+                    <h3 id="agendamentosDiaTitle">📋 Agendamentos do Dia</h3>
+                    <div id="agendamentosList" class="agendamentos-list">
+                        <p class="empty-message">Selecione um dia para ver os agendamentos</p>
                     </div>
                 </div>
             </section>
@@ -733,6 +771,51 @@
                 <div class="modal-actions">
                     <button type="submit" class="btn btn-danger">🗑️ Confirmar Exclusão</button>
                     <button type="button" class="btn btn-secondary" id="cancelarExclusao">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Novo Agendamento -->
+    <div id="novoAgendamentoModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 Novo Agendamento</h3>
+                <button class="close-modal" onclick="app.hideNovoAgendamentoModal()">&times;</button>
+            </div>
+            <form id="agendamentoForm" class="form-container">
+                <div class="form-group">
+                    <label for="agendamentoData">📅 Data:</label>
+                    <input type="date" id="agendamentoData" name="data" required readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="agendamentoPaciente">👤 Paciente:</label>
+                    <select id="agendamentoPaciente" name="pacienteId" required>
+                        <option value="">Selecione um paciente...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="agendamentoHorario">🕒 Horário:</label>
+                    <input type="time" id="agendamentoHorario" name="horario" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="agendamentoTipo">🩺 Tipo de Atendimento:</label>
+                    <input type="text" id="agendamentoTipo" name="tipo" placeholder="Ex: Consulta, Retorno, Procedimento..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="agendamentoObservacoes">📝 Observações:</label>
+                    <textarea id="agendamentoObservacoes" name="observacoes" rows="3" placeholder="Observações sobre o agendamento..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="app.hideNovoAgendamentoModal()" class="btn btn-secondary">❌ Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">📅 Agendar</span>
+                    </button>
                 </div>
             </form>
         </div>

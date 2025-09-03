@@ -290,9 +290,32 @@ class ProntuarioApp {
                     this.hideExcluirPacienteModal();
                 } else if (e.target.id === 'limparLogsModal') {
                     this.hideLimparLogsModal();
+                } else if (e.target.id === 'novoAgendamentoModal') {
+                    this.hideNovoAgendamentoModal();
                 }
             }
         });
+        
+        // === AGENDA EVENT LISTENERS ===
+        // Configurar apenas uma vez para evitar duplicação
+        if (!this.agendaModalListenersSetup) {
+            this.agendaModalListenersSetup = true;
+            
+            const closeAgendaModalBtn = document.getElementById('closeAgendaModal');
+            const cancelAgendamentoBtn = document.getElementById('cancelAgendamento');
+            
+            if (closeAgendaModalBtn) {
+                closeAgendaModalBtn.addEventListener('click', () => {
+                    this.hideNovoAgendamentoModal();
+                });
+            }
+            
+            if (cancelAgendamentoBtn) {
+                cancelAgendamentoBtn.addEventListener('click', () => {
+                    this.hideNovoAgendamentoModal();
+                });
+            }
+        }
 
         // Event listeners para aba de logs
         document.getElementById('visualizarLogsBtn').addEventListener('click', () => {
@@ -788,6 +811,8 @@ class ProntuarioApp {
                 await this.loadPacientes();
             } else if (tabName === 'meuPerfil') {
                 await this.loadEstatisticas();
+            } else if (tabName === 'agenda') {
+                await this.loadAgenda();
             } else if (tabName === 'arrecadacao') {
                 await this.loadArrecadacao();
             } else if (tabName === 'usuarios' && this.currentUser.tipo === 'Administrador') {
@@ -1582,8 +1607,430 @@ class ProntuarioApp {
             this.showMessage('Erro ao excluir atendimento', 'error');
         }
     }
+
+    // === AGENDA/CALENDÁRIO ===
+    async loadAgenda() {
+        // Inicializar agenda
+        this.currentDate = new Date();
+        this.selectedDate = null;
+        this.agendamentos = [];
+        
+        // Configurar event listeners da agenda
+        this.setupAgendaEventListeners();
+        
+        // Carregar agendamentos do servidor
+        await this.loadAgendamentos();
+        
+        // Renderizar calendário
+        this.renderCalendario();
+    }
+    
+    setupAgendaEventListeners() {
+        // Evitar duplicação de event listeners
+        if (this.agendaListenersSetup) return;
+        this.agendaListenersSetup = true;
+        
+        // Navegação do calendário
+        const voltarMesBtn = document.getElementById('voltarMesBtn');
+        const proximoMesBtn = document.getElementById('proximoMesBtn');
+        
+        if (voltarMesBtn) {
+            voltarMesBtn.addEventListener('click', () => {
+                this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+                this.renderCalendario();
+            });
+        }
+        
+        if (proximoMesBtn) {
+            proximoMesBtn.addEventListener('click', () => {
+                this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+                this.renderCalendario();
+            });
+        }
+        
+        // Form de agendamento
+        const agendamentoForm = document.getElementById('agendamentoForm');
+        if (agendamentoForm) {
+            agendamentoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleNovoAgendamento();
+            });
+        }
+    }
+    
+    async loadAgendamentos() {
+        // Mostrar indicador de carregamento
+        this.showLoadingIndicator('Carregando agendamentos...');
+        
+        try {
+            const response = await fetch('/api/agendamentos');
+            if (response.ok) {
+                this.agendamentos = await response.json();
+            } else {
+                console.error('Erro ao carregar agendamentos');
+                this.showMessage('Erro ao carregar agendamentos', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar agendamentos:', error);
+            this.showMessage('Erro de conexão ao carregar agendamentos', 'error');
+        } finally {
+            this.hideLoadingIndicator();
+        }
+    }
+    
+    renderCalendario() {
+        const mesAtual = document.getElementById('mesAtual');
+        const calendarioGrid = document.getElementById('calendarioGrid');
+        
+        if (!mesAtual || !calendarioGrid) return;
+        
+        // Atualizar título do mês
+        const meses = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        mesAtual.textContent = `${meses[this.currentDate.getMonth()]} ${this.currentDate.getFullYear()}`;
+        
+        // Limpar grid
+        calendarioGrid.innerHTML = '';
+        
+        // Obter primeiro dia do mês e quantos dias tem
+        const primeiroDia = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+        const ultimoDia = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
+        const diasNoMes = ultimoDia.getDate();
+        
+        // Dias do mês anterior (para preencher início da semana)
+        const diasAntes = primeiroDia.getDay();
+        const mesAnterior = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 0);
+        
+        for (let i = diasAntes - 1; i >= 0; i--) {
+            const dia = mesAnterior.getDate() - i;
+            const diaElement = this.createDiaElement(dia, true);
+            calendarioGrid.appendChild(diaElement);
+        }
+        
+        // Dias do mês atual
+        const hoje = new Date();
+        for (let dia = 1; dia <= diasNoMes; dia++) {
+            const dataAtual = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), dia);
+            const isHoje = dataAtual.toDateString() === hoje.toDateString();
+            const isSelecionado = this.selectedDate && dataAtual.toDateString() === this.selectedDate.toDateString();
+            
+            const diaElement = this.createDiaElement(dia, false, isHoje, isSelecionado, dataAtual);
+            calendarioGrid.appendChild(diaElement);
+        }
+        
+        // Dias do próximo mês (para completar a grade)
+        const diasRestantes = 42 - (diasAntes + diasNoMes); // 6 semanas × 7 dias
+        for (let dia = 1; dia <= diasRestantes; dia++) {
+            const diaElement = this.createDiaElement(dia, true);
+            calendarioGrid.appendChild(diaElement);
+        }
+    }
+    
+    createDiaElement(dia, outroMes, isHoje = false, isSelecionado = false, dataCompleta = null) {
+        const diaElement = document.createElement('div');
+        diaElement.className = 'dia-calendario';
+        
+        if (outroMes) {
+            diaElement.classList.add('outro-mes');
+        } else {
+            if (isHoje) diaElement.classList.add('hoje');
+            if (isSelecionado) diaElement.classList.add('selecionado');
+            
+            // Adicionar click listener apenas para dias do mês atual
+            if (dataCompleta) {
+                diaElement.addEventListener('click', () => {
+                    this.selecionarDia(dataCompleta);
+                });
+            }
+        }
+        
+        diaElement.innerHTML = `<div class="numero-dia">${dia}</div>`;
+        
+        // Adicionar indicadores de agendamentos
+        if (!outroMes && dataCompleta) {
+            const agendamentosNoDia = this.getAgendamentosNoDia(dataCompleta);
+            if (agendamentosNoDia.length > 0) {
+                const indicador = document.createElement('div');
+                indicador.className = 'indicador-agendamentos';
+                indicador.textContent = agendamentosNoDia.length;
+                diaElement.appendChild(indicador);
+                
+                // Preview de todos os horários dos agendamentos
+                const preview = document.createElement('div');
+                preview.className = 'agendamentos-preview';
+                
+                // Ordenar por horário e pegar todos os horários
+                const horarios = agendamentosNoDia
+                    .sort((a, b) => a.horario.localeCompare(b.horario))
+                    .map(agendamento => agendamento.horario);
+                
+                // Mostrar todos os horários, limitando a 4 para não sobrecarregar
+                if (horarios.length <= 3) {
+                    preview.innerHTML = horarios.join('<br>');
+                } else {
+                    preview.innerHTML = horarios.slice(0, 3).join('<br>') + '<br>...';
+                }
+                
+                diaElement.appendChild(preview);
+            }
+        }
+        
+        return diaElement;
+    }
+    
+    getAgendamentosNoDia(data) {
+        const dataString = data.toISOString().split('T')[0];
+        return this.agendamentos.filter(agendamento => agendamento.data === dataString);
+    }
+    
+    selecionarDia(data) {
+        // Sistema de duplo clique
+        const now = Date.now();
+        const clickKey = data.toDateString();
+        
+        // Verificar se é duplo clique (menos de 500ms entre cliques)
+        if (this.lastClick && this.lastClick.key === clickKey && (now - this.lastClick.time) < 500) {
+            // DUPLO CLIQUE - Mostrar modal de agendamento
+            this.showNovoAgendamentoModal(data);
+            this.lastClick = null; // Reset para evitar triplo clique
+            return;
+        }
+        
+        // CLIQUE SIMPLES - Apenas selecionar o dia
+        this.lastClick = { key: clickKey, time: now };
+        
+        // Atualizar dia selecionado
+        this.selectedDate = data;
+        
+        // Re-renderizar calendário para mostrar seleção
+        this.renderCalendario();
+        
+        // Mostrar agendamentos do dia
+        this.renderAgendamentosDoDia(data);
+    }
+    
+    renderAgendamentosDoDia(data) {
+        const title = document.getElementById('agendamentosDiaTitle');
+        const container = document.getElementById('agendamentosList');
+        
+        if (!title || !container) return;
+        
+        const dataFormatada = this.formatDate(data.toISOString().split('T')[0]);
+        title.textContent = `📋 Agendamentos de ${dataFormatada}`;
+        
+        const agendamentosNoDia = this.getAgendamentosNoDia(data);
+        
+        // Botão para novo agendamento
+        const novoAgendamentoBtn = `
+            <button class="btn-novo-agendamento" onclick="app.showNovoAgendamentoModal(new Date('${data.toISOString()}'))">
+                ➕ Novo Agendamento
+            </button>
+        `;
+        
+        if (agendamentosNoDia.length === 0) {
+            container.innerHTML = `
+                ${novoAgendamentoBtn}
+                <p class="empty-message">Nenhum agendamento para este dia</p>
+            `;
+            return;
+        }
+        
+        // Ordenar por horário
+        agendamentosNoDia.sort((a, b) => a.horario.localeCompare(b.horario));
+        
+        const agendamentosHTML = agendamentosNoDia.map(agendamento => `
+            <div class="agendamento-item">
+                <div class="agendamento-header">
+                    <div class="agendamento-horario">🕒 ${agendamento.horario}</div>
+                </div>
+                <div class="agendamento-paciente">👤 ${agendamento.pacienteNome}</div>
+                <div class="agendamento-tipo">🩺 ${agendamento.tipo}</div>
+                ${agendamento.observacoes ? `<div class="agendamento-observacoes">📝 ${agendamento.observacoes}</div>` : ''}
+                <div class="agendamento-actions">
+                    <button class="btn-agendamento btn-editar-agendamento" onclick="app.editarAgendamento(${agendamento.id})">✏️ Editar</button>
+                    <button class="btn-agendamento btn-excluir-agendamento" onclick="app.excluirAgendamento(${agendamento.id})">🗑️ Excluir</button>
+                </div>
+            </div>
+        `).join('');
+        
+        container.innerHTML = `
+            ${novoAgendamentoBtn}
+            ${agendamentosHTML}
+        `;
+    }
+    
+    async showNovoAgendamentoModal(data) {
+        // Carregar lista de pacientes
+        await this.loadPacientesParaAgendamento();
+        
+        // Preencher data
+        const dataInput = document.getElementById('agendamentoData');
+        if (dataInput) {
+            dataInput.value = data.toISOString().split('T')[0];
+        }
+        
+        // Limpar outros campos
+        document.getElementById('agendamentoPaciente').value = '';
+        document.getElementById('agendamentoHorario').value = '';
+        document.getElementById('agendamentoTipo').value = '';
+        document.getElementById('agendamentoObservacoes').value = '';
+        
+        // Mostrar modal
+        document.getElementById('novoAgendamentoModal').classList.remove('hidden');
+    }
+    
+    hideNovoAgendamentoModal() {
+        document.getElementById('novoAgendamentoModal').classList.add('hidden');
+    }
+    
+    async loadPacientesParaAgendamento() {
+        // Garantir que temos a lista de pacientes
+        if (!this.pacientes || this.pacientes.length === 0) {
+            this.showLoadingIndicator('Carregando pacientes...');
+            try {
+                await this.loadPacientes();
+            } finally {
+                this.hideLoadingIndicator();
+            }
+        }
+        
+        const select = document.getElementById('agendamentoPaciente');
+        if (!select) return;
+        
+        select.innerHTML = '<option value="">Selecione um paciente...</option>';
+        
+        this.pacientes.forEach(paciente => {
+            const option = document.createElement('option');
+            option.value = paciente.id;
+            option.textContent = paciente.nomeCompleto;
+            select.appendChild(option);
+        });
+    }
+    
+    async handleNovoAgendamento() {
+        // Prevenir submissão dupla
+        if (this.submittingAgendamento) return;
+        this.submittingAgendamento = true;
+        
+        const form = document.getElementById('agendamentoForm');
+        const formData = new FormData(form);
+        
+        const agendamentoData = {
+            data: formData.get('data'),
+            pacienteId: parseInt(formData.get('pacienteId')),
+            horario: formData.get('horario'),
+            tipo: formData.get('tipo'),
+            observacoes: formData.get('observacoes')
+        };
+        
+        // Mostrar indicador de carregamento
+        this.showLoadingIndicator('Criando agendamento...');
+        
+        try {
+            const response = await fetch('/api/agendamentos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(agendamentoData)
+            });
+            
+            if (response.ok) {
+                const novoAgendamento = await response.json();
+                
+                // Adicionar à lista local (otimistic UI)
+                this.agendamentos.push(novoAgendamento);
+                
+                this.showMessage('✅ Agendamento criado com sucesso!', 'success');
+                this.hideNovoAgendamentoModal();
+                
+                // Re-renderizar calendário e agendamentos do dia
+                this.renderCalendario();
+                if (this.selectedDate) {
+                    this.renderAgendamentosDoDia(this.selectedDate);
+                }
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error || 'Erro ao criar agendamento', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao criar agendamento:', error);
+            this.showMessage('Erro de conexão ao criar agendamento', 'error');
+        } finally {
+            this.hideLoadingIndicator();
+            this.submittingAgendamento = false;
+        }
+    }
+    
+    async excluirAgendamento(agendamentoId) {
+        const agendamento = this.agendamentos.find(a => a.id === agendamentoId);
+        if (!agendamento) return;
+        
+        const confirmar = confirm(
+            `Tem certeza que deseja excluir o agendamento?\n\n` +
+            `👤 Paciente: ${agendamento.pacienteNome}\n` +
+            `📅 Data: ${this.formatDate(agendamento.data)} às ${agendamento.horario}\n` +
+            `🩺 Tipo: ${agendamento.tipo}\n\n` +
+            `⚠️ Esta ação não pode ser desfeita!`
+        );
+        
+        if (!confirmar) return;
+        
+        // Mostrar indicador de carregamento
+        this.showLoadingIndicator('Excluindo agendamento...');
+        
+        try {
+            const response = await fetch(`/api/agendamentos/${agendamentoId}`, {
+                method: 'DELETE'
+            });
+            
+            if (response.ok) {
+                // Remover da lista local (optimistic UI)
+                this.agendamentos = this.agendamentos.filter(a => a.id !== agendamentoId);
+                
+                this.showMessage('✅ Agendamento excluído com sucesso!', 'success');
+                
+                // Re-renderizar
+                this.renderCalendario();
+                if (this.selectedDate) {
+                    this.renderAgendamentosDoDia(this.selectedDate);
+                }
+            } else {
+                const error = await response.json();
+                this.showMessage(error.error || 'Erro ao excluir agendamento', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao excluir agendamento:', error);
+            this.showMessage('Erro de conexão ao excluir agendamento', 'error');
+        } finally {
+            this.hideLoadingIndicator();
+        }
+    }
     
     // Utilitários
+    
+    showLoadingIndicator(message = 'Carregando...') {
+        // Criar overlay de loading se não existir
+        let loadingOverlay = document.getElementById('loadingOverlay');
+        if (!loadingOverlay) {
+            loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'loadingOverlay';
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = `<div class="spinner"></div>`;
+            document.body.appendChild(loadingOverlay);
+        }
+        
+        loadingOverlay.style.display = 'flex';
+    }
+    
+    hideLoadingIndicator() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
     formatCPF(cpf) {
         return cpf
             .replace(/\D/g, '')

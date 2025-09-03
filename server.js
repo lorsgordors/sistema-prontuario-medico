@@ -933,6 +933,266 @@ app.delete('/api/logs/limpar', requireAdmin, async (req, res) => {
     }
 });
 
+// === ROTAS DA AGENDA/AGENDAMENTOS ===
+
+// Função auxiliar para encontrar arquivo de paciente pelo ID
+async function findPacienteFileById(pacienteId) {
+    try {
+        const files = await listFilesFromGithub('pacientes/');
+        
+        for (const fileInfo of files) {
+            const fileName = typeof fileInfo === 'string' ? fileInfo : fileInfo.name;
+            if (fileName && fileName.endsWith('.json')) {
+                try {
+                    const filePath = fileName.startsWith('pacientes/') ? fileName : `pacientes/${fileName}`;
+                    const pacienteData = await fetchJsonFromGithub(filePath);
+                    const decryptedData = decryptPatientData(pacienteData);
+                    
+                    if (decryptedData && decryptedData.id == pacienteId) {
+                        return {
+                            fileName: fileName.replace('pacientes/', ''),
+                            data: decryptedData
+                        };
+                    }
+                } catch (error) {
+                    console.error(`Erro ao verificar arquivo ${fileName}:`, error);
+                }
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('Erro ao buscar arquivo do paciente:', error);
+        return null;
+    }
+}
+
+// GET - Listar agendamentos
+app.get('/api/agendamentos', requireAuth, async (req, res) => {
+    try {
+        let agendamentos = [];
+        
+        try {
+            agendamentos = await fetchJsonFromGithub('agendamentos.json');
+        } catch (error) {
+            // Arquivo não existe ainda, retornar lista vazia
+            console.log('Arquivo agendamentos.json não existe, criando vazio');
+            agendamentos = [];
+        }
+        
+        // Garantir que agendamentos é um array
+        if (!Array.isArray(agendamentos)) {
+            agendamentos = [];
+        }
+        
+        // Enriquecer agendamentos com dados do paciente
+        const pacienteFiles = await listFilesFromGithub('pacientes/');
+        const pacientesData = {};
+        
+        for (const fileInfo of pacienteFiles) {
+            const fileName = typeof fileInfo === 'string' ? fileInfo : fileInfo.name;
+            if (fileName && fileName.endsWith('.json')) {
+                try {
+                    const filePath = fileName.startsWith('pacientes/') ? fileName : `pacientes/${fileName}`;
+                    const pacienteData = await fetchJsonFromGithub(filePath);
+                    const decryptedData = decryptPatientData(pacienteData);
+                    
+                    if (decryptedData && decryptedData.id) {
+                        pacientesData[decryptedData.id] = decryptedData;
+                    }
+                } catch (error) {
+                    console.error(`Erro ao carregar paciente ${fileName}:`, error);
+                }
+            }
+        }
+        
+        // Adicionar nome do paciente aos agendamentos
+        const agendamentosEnriquecidos = agendamentos.map(agendamento => {
+            const paciente = pacientesData[agendamento.pacienteId];
+            return {
+                ...agendamento,
+                pacienteNome: paciente ? paciente.nomeCompleto : 'Paciente não encontrado'
+            };
+        });
+        
+        await logAuditoria(
+            'LISTAR_AGENDAMENTOS',
+            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            `Total de agendamentos: ${agendamentos.length}`,
+            req
+        );
+        
+        res.json(agendamentosEnriquecidos);
+    } catch (error) {
+        console.error('Erro ao buscar agendamentos:', error);
+        await logAuditoria(
+            'ERRO_LISTAR_AGENDAMENTOS',
+            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            `Erro: ${error.message}`,
+            req
+        );
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+// POST - Criar agendamento
+app.post('/api/agendamentos', requireAuth, async (req, res) => {
+    try {
+        const { data, pacienteId, horario, tipo, observacoes } = req.body;
+        
+        // Validações
+        if (!data || !pacienteId || !horario || !tipo) {
+            return res.status(400).json({ 
+                error: 'Dados obrigatórios: data, pacienteId, horario, tipo' 
+            });
+        }
+        
+        // Verificar se o paciente existe e obter dados
+        let pacienteInfo = null;
+        try {
+            pacienteInfo = await findPacienteFileById(pacienteId);
+            if (!pacienteInfo) {
+                return res.status(404).json({ error: 'Paciente não encontrado' });
+            }
+        } catch (error) {
+            console.error('Erro ao verificar paciente:', error);
+            return res.status(500).json({ error: 'Erro ao verificar paciente' });
+        }
+        
+        // Carregar agendamentos existentes
+        let agendamentos = [];
+        try {
+            const dados = await fetchJsonFromGithub('agendamentos.json');
+            agendamentos = Array.isArray(dados) ? dados : [];
+        } catch (error) {
+            // Arquivo não existe ainda
+            agendamentos = [];
+        }
+        
+        // Verificar conflito de horário
+        const conflito = agendamentos.find(a => 
+            a.data === data && a.horario === horario
+        );
+        
+        if (conflito) {
+            return res.status(409).json({ 
+                error: 'Já existe um agendamento para este horário' 
+            });
+        }
+        
+        // Gerar ID único
+        const novoId = agendamentos.length > 0 
+            ? Math.max(...agendamentos.map(a => a.id)) + 1 
+            : 1;
+        
+        // Criar novo agendamento
+        const novoAgendamento = {
+            id: novoId,
+            data,
+            pacienteId: parseInt(pacienteId),
+            horario,
+            tipo,
+            observacoes: observacoes || '',
+            criadoEm: new Date().toISOString(),
+            criadoPor: req.session.usuario ? req.session.usuario.nome : 'sistema',
+            status: 'agendado'
+        };
+        
+        // Adicionar à lista
+        agendamentos.push(novoAgendamento);
+        
+        // Salvar no GitHub
+        await saveJsonToGithub(
+            'agendamentos.json', 
+            agendamentos, 
+            `Novo agendamento para paciente ${pacienteId}`
+        );
+        
+        const agendamentoCompleto = {
+            ...novoAgendamento,
+            pacienteNome: pacienteInfo.data.nomeCompleto
+        };
+        
+        await logAuditoria(
+            'CRIAR_AGENDAMENTO',
+            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            `Agendamento criado para ${pacienteInfo.data.nomeCompleto} em ${data} às ${horario}`,
+            req
+        );
+        
+        res.status(201).json(agendamentoCompleto);
+    } catch (error) {
+        console.error('Erro ao criar agendamento:', error);
+        await logAuditoria(
+            'ERRO_CRIAR_AGENDAMENTO',
+            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            `Erro: ${error.message}`,
+            req
+        );
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+// DELETE - Excluir agendamento
+app.delete('/api/agendamentos/:id', requireAuth, async (req, res) => {
+    try {
+        const agendamentoId = parseInt(req.params.id);
+        
+        // Carregar agendamentos
+        let agendamentos = [];
+        try {
+            const dados = await fetchJsonFromGithub('agendamentos.json');
+            agendamentos = Array.isArray(dados) ? dados : [];
+        } catch (error) {
+            return res.status(404).json({ error: 'Nenhum agendamento encontrado' });
+        }
+        
+        // Encontrar agendamento
+        const agendamento = agendamentos.find(a => a.id === agendamentoId);
+        if (!agendamento) {
+            return res.status(404).json({ error: 'Agendamento não encontrado' });
+        }
+        
+        // Carregar dados do paciente para auditoria
+        let nomePaciente = 'Desconhecido';
+        try {
+            const pacienteInfo = await findPacienteFileById(agendamento.pacienteId);
+            if (pacienteInfo && pacienteInfo.data) {
+                nomePaciente = pacienteInfo.data.nomeCompleto;
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados do paciente para auditoria:', error);
+        }
+        
+        // Remover agendamento
+        agendamentos = agendamentos.filter(a => a.id !== agendamentoId);
+        
+        // Salvar lista atualizada
+        await saveJsonToGithub(
+            'agendamentos.json',
+            agendamentos,
+            `Agendamento excluído: ${nomePaciente} - ${agendamento.data} ${agendamento.horario}`
+        );
+        
+        await logAuditoria(
+            'EXCLUIR_AGENDAMENTO',
+            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            `Agendamento excluído: ${nomePaciente} em ${agendamento.data} às ${agendamento.horario}`,
+            req
+        );
+        
+        res.json({ message: 'Agendamento excluído com sucesso' });
+    } catch (error) {
+        console.error('Erro ao excluir agendamento:', error);
+        await logAuditoria(
+            'ERRO_EXCLUIR_AGENDAMENTO',
+            req.session.usuario ? req.session.usuario.nome : 'sistema',
+            `Erro: ${error.message}`,
+            req
+        );
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
 // Função para iniciar servidor com configuração robusta - LORSGORDORS
 function startServerLorsgordors(port) {
     console.log('🔧 Configurando servidor para lorsgordors...');
