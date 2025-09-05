@@ -592,7 +592,7 @@ class ProntuarioApp {
             const response = await fetch('/api/me');
             if (response.ok) {
                 this.currentUser = await response.json();
-                this.showMainScreen();
+                await this.showMainScreen();
             } else {
                 this.showLoginScreen();
             }
@@ -621,7 +621,11 @@ class ProntuarioApp {
             if (response.ok) {
                 const data = await response.json();
                 this.currentUser = data.user;
-                this.showMainScreen();
+                
+                // Carregar personalização do usuário assim que fizer login
+                await this.loadUserPersonalization();
+                
+                await this.showMainScreen();
                 errorDiv.style.display = 'none';
             } else {
                 const error = await response.json();
@@ -638,10 +642,64 @@ class ProntuarioApp {
         try {
             await fetch('/api/logout', { method: 'POST' });
             this.currentUser = null;
+            
+            // Limpar personalização individual do usuário
+            if (window.personalizationManager) {
+                window.personalizationManager.clearUserPersonalization();
+            }
+            
             this.showLoginScreen();
         } catch (error) {
             this.showMessage('Erro ao fazer logout', 'error');
         }
+    }
+    
+    async loadUserPersonalization() {
+        try {
+            const response = await fetch('/api/personalizacao');
+            if (response.ok) {
+                const config = await response.json();
+                this.applyUserPersonalization(config);
+            }
+        } catch (error) {
+            console.log('Personalização não encontrada, usando padrão');
+        }
+    }
+    
+    applyUserPersonalization(config) {
+        // Update CSS variables
+        const root = document.documentElement;
+        root.style.setProperty('--primary-purple', config.corPrimaria || '#8b5cf6');
+        root.style.setProperty('--secondary-purple', config.corSecundaria || '#667eea');
+        
+        const nomeSystem = config.nomeSystem || config.nomeSistema || 'Lizard Prontuário';
+        
+        // Update page title
+        if (document.title) {
+            document.title = nomeSystem;
+        }
+        
+        // Update login system name (se ainda estiver visível)
+        const loginSystemName = document.getElementById('loginSystemName');
+        if (loginSystemName) {
+            const logoHtml = loginSystemName.querySelector('.logo-icon')?.outerHTML || '';
+            loginSystemName.innerHTML = `${logoHtml} ${nomeSystem}`;
+        }
+        
+        // Update main system name  
+        const mainSystemName = document.getElementById('mainSystemName');
+        if (mainSystemName) {
+            const logoHtml = mainSystemName.querySelector('.logo-icon')?.outerHTML || '';
+            mainSystemName.innerHTML = `${logoHtml} ${nomeSystem}`;
+        }
+        
+        // Update logo
+        const logos = document.querySelectorAll('.logo-icon');
+        logos.forEach(logo => {
+            if (config.logoUrl && config.logoUrl !== 'logo.png') {
+                logo.src = config.logoUrl;
+            }
+        });
     }
     
     async handleAlterarSenha() {
@@ -884,7 +942,7 @@ class ProntuarioApp {
         document.getElementById('loginForm').reset();
     }
     
-    showMainScreen() {
+    async showMainScreen() {
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('mainScreen').classList.remove('hidden');
         
@@ -925,6 +983,15 @@ class ProntuarioApp {
             usuariosTabBtn.style.display = 'none';
             logsTabBtn.style.display = 'none';
         }
+        
+        // Inicializar PersonalizationManager se não existir
+        if (!window.personalizationManager) {
+            window.personalizationManager = new PersonalizationManager();
+        }
+        
+        // Carregar personalização individual do usuário
+        console.log('Carregando personalização para usuário:', this.currentUser.login);
+        await window.personalizationManager.loadUserPersonalization(this.currentUser.login);
         
         // Carregar dados da aba inicial apenas (aba 'meuPerfil' está ativa por padrão)
         // Os dados das outras abas serão carregados quando o usuário clicar nelas
@@ -985,6 +1052,11 @@ class ProntuarioApp {
                 await this.loadAgenda();
             } else if (tabName === 'arrecadacao') {
                 await this.loadArrecadacao();
+            } else if (tabName === 'personalizacao') {
+                // Initialize personalization if not already done
+                if (!window.personalizationManager) {
+                    window.personalizationManager = new PersonalizationManager();
+                }
             } else if (tabName === 'usuarios' && this.currentUser.tipo === 'Administrador') {
                 await this.loadUsuarios();
             } else if (tabName === 'logs' && this.currentUser.tipo === 'Administrador') {
@@ -3030,3 +3102,449 @@ if (document.readyState === 'loading') {
     const app = new ProntuarioApp();
     window.app = app;
 }
+
+/* ===== SISTEMA DE PERSONALIZAÇÃO ===== */
+class PersonalizationManager {
+    constructor() {
+        this.currentTheme = {
+            corPrimaria: '#8b5cf6',
+            corSecundaria: '#667eea',
+            nomeSystema: 'Lizard Prontuário',
+            logoUrl: 'logo.png',
+            tema: 'padrao'
+        };
+        this.init();
+    }
+
+    init() {
+        this.loadPersonalization();
+        this.setupEventListeners();
+        this.updatePreview();
+    }
+
+    setupEventListeners() {
+        // Theme cards
+        document.querySelectorAll('.theme-card').forEach(card => {
+            card.addEventListener('click', (e) => this.selectTheme(e.currentTarget));
+        });
+
+        // Color inputs
+        document.getElementById('corPrimaria')?.addEventListener('input', (e) => {
+            this.updateColorPreview('primaria', e.target.value);
+            this.updatePreview();
+        });
+        
+        document.getElementById('corSecundaria')?.addEventListener('input', (e) => {
+            this.updateColorPreview('secundaria', e.target.value);
+            this.updatePreview();
+        });
+
+        // Name input
+        document.getElementById('nomeSystema')?.addEventListener('input', (e) => {
+            this.updatePreview();
+        });
+
+        // Logo upload
+        document.getElementById('logoUpload')?.addEventListener('change', (e) => {
+            this.handleLogoUpload(e);
+        });
+
+        // Form submission
+        document.getElementById('personalizacaoForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.savePersonalization();
+        });
+
+        // Reset button
+        document.getElementById('resetPersonalizacao')?.addEventListener('click', () => {
+            this.resetToDefault();
+        });
+    }
+
+    selectTheme(card) {
+        // Remove active class from all cards
+        document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('active'));
+        // Add active class to selected card
+        card.classList.add('active');
+
+        const theme = card.dataset.theme;
+        const themes = {
+            padrao: { primary: '#8b5cf6', secondary: '#667eea' },
+            saude: { primary: '#059669', secondary: '#06b6d4' },
+            profissional: { primary: '#1e40af', secondary: '#3730a3' },
+            moderno: { primary: '#ec4899', secondary: '#f59e0b' }
+        };
+
+        if (themes[theme]) {
+            document.getElementById('corPrimaria').value = themes[theme].primary;
+            document.getElementById('corSecundaria').value = themes[theme].secondary;
+            this.updateColorPreview('primaria', themes[theme].primary);
+            this.updateColorPreview('secundaria', themes[theme].secondary);
+            this.updatePreview();
+        }
+    }
+
+    updateColorPreview(type, color) {
+        const preview = document.getElementById(`cor${type.charAt(0).toUpperCase() + type.slice(1)}Preview`);
+        if (preview) {
+            preview.style.background = color;
+        }
+    }
+
+    updatePreview() {
+        const nomeSystema = document.getElementById('nomeSystema')?.value || 'Lizard Prontuário';
+        const corPrimaria = document.getElementById('corPrimaria')?.value || '#8b5cf6';
+        const corSecundaria = document.getElementById('corSecundaria')?.value || '#667eea';
+
+        // Update preview card
+        const previewHeader = document.getElementById('previewHeader');
+        const previewNome = document.getElementById('previewNome');
+        const previewNavBtn = document.querySelector('.preview-nav-btn.active');
+
+        if (previewHeader) {
+            previewHeader.style.background = `linear-gradient(135deg, ${corPrimaria} 0%, ${corSecundaria} 100%)`;
+        }
+        
+        if (previewNome) {
+            previewNome.textContent = nomeSystema;
+        }
+
+        if (previewNavBtn) {
+            previewNavBtn.style.background = corPrimaria;
+        }
+    }
+
+    handleLogoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file size (5MB before processing)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showMessage('Arquivo muito grande. Máximo 5MB.', 'error');
+            return;
+        }
+
+        // Validate file type
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
+        if (!validTypes.includes(file.type)) {
+            this.showMessage('Tipo de arquivo inválido. Use PNG, JPG ou SVG.', 'error');
+            return;
+        }
+
+        // Create preview and compress image
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (file.type === 'image/svg+xml') {
+                // SVG files can be used as-is
+                const logoDataUrl = e.target.result;
+                this.applyLogoPreview(logoDataUrl);
+                this.pendingLogoData = logoDataUrl;
+            } else {
+                // Compress other image types
+                this.compressAndApplyLogo(e.target.result);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    compressAndApplyLogo(originalDataUrl) {
+        const img = new Image();
+        img.onload = () => {
+            // Create canvas for resizing
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Calculate new dimensions (max 200x200 pixels)
+            const maxSize = 200;
+            let { width, height } = img;
+            
+            if (width > height) {
+                if (width > maxSize) {
+                    height = (height * maxSize) / width;
+                    width = maxSize;
+                }
+            } else {
+                if (height > maxSize) {
+                    width = (width * maxSize) / height;
+                    height = maxSize;
+                }
+            }
+
+            // Set canvas size and draw resized image
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Convert to data URL with compression
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8); // 80% quality
+            
+            this.applyLogoPreview(compressedDataUrl);
+            this.pendingLogoData = compressedDataUrl;
+            
+            console.log('Logo comprimido e otimizado para upload');
+        };
+        img.src = originalDataUrl;
+    }
+
+    applyLogoPreview(logoDataUrl) {
+        // Update preview
+        const previewLogo = document.getElementById('previewLogo');
+        if (previewLogo) {
+            previewLogo.src = logoDataUrl;
+        }
+        
+        console.log('Logo carregado para preview, será salvo ao clicar em "Salvar"');
+    }
+
+    async loadPersonalization() {
+        try {
+            const response = await fetch('/api/personalizacao');
+            if (response.ok) {
+                const data = await response.json();
+                this.applyPersonalization(data);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar personalização:', error);
+        }
+    }
+
+    async loadUserPersonalization(userId) {
+        if (!userId) return;
+        
+        try {
+            const response = await fetch(`/api/personalizacao?userId=${encodeURIComponent(userId)}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.applyPersonalization(data);
+                console.log('Personalização individual carregada para usuário:', userId);
+            } else if (response.status === 404) {
+                // Usuário não tem personalização salva, usar padrão
+                this.resetToDefault();
+            }
+        } catch (error) {
+            console.error('Erro ao carregar personalização do usuário:', error);
+            // Em caso de erro, usar personalização padrão
+            this.resetToDefault();
+        }
+    }
+
+    applyPersonalization(config) {
+        // Update form fields
+        if (document.getElementById('nomeSystema')) {
+            document.getElementById('nomeSystema').value = config.nomeSystem || config.nomeSistema || 'Lizard Prontuário';
+        }
+        if (document.getElementById('corPrimaria')) {
+            document.getElementById('corPrimaria').value = config.corPrimaria || '#8b5cf6';
+        }
+        if (document.getElementById('corSecundaria')) {
+            document.getElementById('corSecundaria').value = config.corSecundaria || '#667eea';
+        }
+
+        // Update color previews
+        this.updateColorPreview('primaria', config.corPrimaria || '#8b5cf6');
+        this.updateColorPreview('secundaria', config.corSecundaria || '#667eea');
+
+        // Update logo preview if exists
+        if (config.logoUrl && config.logoUrl !== 'logo.png') {
+            const previewLogo = document.getElementById('previewLogo');
+            if (previewLogo) {
+                previewLogo.src = config.logoUrl;
+            }
+        }
+
+        // Apply to actual interface
+        this.applyToInterface(config);
+        this.updatePreview();
+    }
+
+    applyToInterface(config) {
+        // Get colors
+        const primary = config.corPrimaria || '#8b5cf6';
+        const secondary = config.corSecundaria || '#667eea';
+        
+        // Helper function to generate color variations
+        const generateColorVariations = (color) => {
+            // Convert hex to RGB
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            
+            // Generate variations
+            const light = `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`;
+            const dark = `rgb(${Math.max(0, r - 40)}, ${Math.max(0, g - 40)}, ${Math.max(0, b - 40)})`;
+            const accent = `rgb(${Math.min(255, r + 20)}, ${Math.min(255, g + 20)}, ${Math.min(255, b + 20)})`;
+            
+            return { light, dark, accent };
+        };
+        
+        const primaryVariations = generateColorVariations(primary);
+        const secondaryVariations = generateColorVariations(secondary);
+        
+        // Update CSS variables (only for this user's session)
+        const root = document.documentElement;
+        
+        // Primary colors
+        root.style.setProperty('--primary-purple', primary);
+        root.style.setProperty('--light-purple', primaryVariations.light);
+        root.style.setProperty('--dark-purple', primaryVariations.dark);
+        root.style.setProperty('--accent-purple', primaryVariations.accent);
+        
+        // Secondary colors
+        root.style.setProperty('--secondary-purple', secondary);
+        
+        // Gradients
+        root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`);
+        root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${secondary} 0%, ${primary} 100%)`);
+        root.style.setProperty('--gradient-accent', `linear-gradient(135deg, ${primaryVariations.accent} 0%, ${secondary} 100%)`);
+        
+        const nomeSystem = config.nomeSystem || config.nomeSistema || 'Lizard Prontuário';
+        
+        // Update page title (individual for each user)
+        document.title = nomeSystem;
+        
+        // Update system names in headers (only for this session)
+        const systemHeaders = document.querySelectorAll('h1');
+        systemHeaders.forEach(header => {
+            if (header.textContent.includes('Lizard Prontuário') || 
+                header.innerHTML.includes('Lizard Prontuário') ||
+                header.hasAttribute('data-system-name')) {
+                
+                const logoHtml = header.querySelector('.logo-icon') ? 
+                    header.querySelector('.logo-icon').outerHTML + ' ' : '';
+                header.innerHTML = logoHtml + nomeSystem;
+                header.setAttribute('data-system-name', 'true');
+            }
+        });
+        
+        // Update system names in other places
+        const systemNameElements = document.querySelectorAll('[data-system-name-text]');
+        systemNameElements.forEach(element => {
+            element.textContent = nomeSystem;
+        });
+        
+        // Update logo (only for this session)
+        if (config.logoUrl && config.logoUrl !== 'logo.png') {
+            const logos = document.querySelectorAll('.logo-icon');
+            logos.forEach(logo => {
+                logo.src = config.logoUrl;
+            });
+            console.log('Logo personalizado aplicado:', config.logoUrl.substring(0, 50) + '...');
+        } else {
+            // Reset to default logo
+            const logos = document.querySelectorAll('.logo-icon');
+            logos.forEach(logo => {
+                logo.src = 'logo.png';
+            });
+        }
+        
+        // Store personalization in sessionStorage (individual per user session)
+        sessionStorage.setItem('currentUserPersonalization', JSON.stringify({
+            userId: window.app?.currentUser?.id,
+            config: config,
+            appliedAt: new Date().getTime()
+        }));
+        
+        console.log('Personalização completa aplicada individualmente para o usuário:', nomeSystem);
+    }
+
+    async savePersonalization() {
+        try {
+            const config = {
+                corPrimaria: document.getElementById('corPrimaria')?.value || '#8b5cf6',
+                corSecundaria: document.getElementById('corSecundaria')?.value || '#667eea',
+                nomeSystem: document.getElementById('nomeSystema')?.value || 'Lizard Prontuário',
+                tema: document.querySelector('.theme-card.active')?.dataset.theme || 'padrao'
+            };
+
+            // Include logo data if uploaded
+            if (this.pendingLogoData) {
+                config.logoUrl = this.pendingLogoData;
+                console.log('Incluindo logo personalizado na salvagem');
+            } else {
+                config.logoUrl = 'logo.png'; // Default logo
+            }
+
+            const response = await fetch('/api/personalizacao', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            });
+
+            if (response.ok) {
+                this.applyToInterface(config);
+                this.showMessage('Personalização salva com sucesso!', 'success');
+                
+                // Clear pending logo data after successful save
+                this.pendingLogoData = null;
+            } else {
+                throw new Error('Erro ao salvar');
+            }
+        } catch (error) {
+            console.error('Erro ao salvar personalização:', error);
+            this.showMessage('Erro ao salvar personalização.', 'error');
+        }
+    }
+
+    resetToDefault() {
+        const defaultConfig = {
+            corPrimaria: '#8b5cf6',
+            corSecundaria: '#667eea',
+            nomeSistema: 'Lizard Prontuário',
+            logoUrl: 'logo.png',
+            tema: 'padrao'
+        };
+
+        this.applyPersonalization(defaultConfig);
+        
+        // Reset theme selection
+        document.querySelectorAll('.theme-card').forEach(card => {
+            card.classList.toggle('active', card.dataset.theme === 'padrao');
+        });
+    }
+
+    clearUserPersonalization() {
+        // Limpar personalização do sessionStorage
+        sessionStorage.removeItem('currentUserPersonalization');
+        
+        // Voltar aos valores padrão do sistema
+        const root = document.documentElement;
+        root.style.removeProperty('--primary-purple');
+        root.style.removeProperty('--secondary-purple');
+        root.style.removeProperty('--gradient-primary');
+        root.style.removeProperty('--gradient-secondary');
+        
+        // Restaurar título padrão
+        document.title = 'Lizard Prontuário';
+        
+        // Restaurar nomes do sistema nos cabeçalhos
+        const systemHeaders = document.querySelectorAll('[data-system-name="true"]');
+        systemHeaders.forEach(header => {
+            const logoHtml = header.querySelector('.logo-icon') ? 
+                header.querySelector('.logo-icon').outerHTML + ' ' : '';
+            header.innerHTML = logoHtml + 'Lizard Prontuário';
+        });
+        
+        // Restaurar logos padrão
+        const logos = document.querySelectorAll('.logo-icon');
+        logos.forEach(logo => {
+            logo.src = 'logo.png';
+        });
+        
+        console.log('Personalização individual limpa no logout');
+    }
+
+    showMessage(message, type) {
+        // Use the existing message system
+        if (window.app && window.app.showMessage) {
+            window.app.showMessage(message, type);
+        } else {
+            alert(message);
+        }
+    }
+}
+
+// Initialize personalization when needed
+// Removed automatic DOMContentLoaded initialization since it's handled by switchTab

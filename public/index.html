@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lizard Prontuário</title>
+    <title id="pageTitle" data-system-name-text>Lizard Prontuário</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
     <div id="loginScreen" class="screen">
         <div class="login-container">
             <div class="login-header">
-                <h1><img src="logo.png" alt="Logo" class="logo-icon"> Lizard Prontuário</h1>
+                <h1 id="loginSystemName" data-system-name="true"><img src="logo.png" alt="Logo" class="logo-icon"> Lizard Prontuário</h1>
                 <p>Acesso Local Seguro</p>
             </div>
             
@@ -42,7 +42,7 @@
         <!-- Header -->
         <header class="main-header">
             <div class="header-content">
-                <h1><img src="logo.png" alt="Logo" class="logo-icon"> Lizard Prontuário</h1>
+                <h1 id="mainSystemName" data-system-name="true"><img src="logo.png" alt="Logo" class="logo-icon"> Lizard Prontuário</h1>
                 <div class="user-info">
                     <span id="userWelcome">Bem-vindo, ...</span>
                     <button id="logoutBtn" class="btn btn-secondary">Sair</button>
@@ -57,6 +57,7 @@
             <button class="nav-btn" data-tab="cadastroPaciente">➕ Novo Paciente</button>
             <button class="nav-btn" data-tab="agenda">📅 Agenda</button>
             <button class="nav-btn" data-tab="arrecadacao">💰 Arrecadação</button>
+            <button class="nav-btn" data-tab="personalizacao">🎨 Personalizar</button>
             <button class="nav-btn" data-tab="usuarios" id="usuariosTabBtn" style="display:none">👥 Usuários</button>
             <button class="nav-btn" data-tab="logs" id="logsTabBtn" style="display:none">📋 Logs</button>
         </nav>
@@ -460,6 +461,136 @@
                     </div>
                     <div id="detalhesArrecadacao" class="details-list">
                         <!-- Detalhes serão carregados aqui -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Aba Personalização -->
+            <section id="personalizacao" class="tab-content">
+                <div class="content-header">
+                    <h2>🎨 Personalizar Interface</h2>
+                    <p class="subtitle">Customize a aparência do sistema do seu jeito</p>
+                </div>
+                
+                <div class="personalization-container">
+                    <!-- Preview da Personalização -->
+                    <div class="preview-section">
+                        <h3>👁️ Pré-visualização</h3>
+                        <div class="preview-card" id="previewCard">
+                            <div class="preview-header" id="previewHeader">
+                                <img id="previewLogo" src="logo.png" alt="Logo" class="preview-logo">
+                                <h4 id="previewNome">Lizard Prontuário</h4>
+                            </div>
+                            <div class="preview-content">
+                                <div class="preview-nav">
+                                    <button class="preview-nav-btn active">Meu Perfil</button>
+                                    <button class="preview-nav-btn">Pacientes</button>
+                                </div>
+                                <div class="preview-body">
+                                    <p>Esta é uma prévia de como ficará seu sistema personalizado!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configurações de Personalização -->
+                    <div class="settings-section">
+                        <form id="personalizacaoForm" class="personalization-form">
+                            <!-- Nome do Sistema -->
+                            <div class="setting-group">
+                                <label for="nomeSystema">
+                                    <span class="setting-icon">📝</span>
+                                    Nome do Sistema
+                                </label>
+                                <input type="text" id="nomeSystema" name="nomeSystema" 
+                                       placeholder="Ex: Clínica Dr. João" maxlength="30">
+                                <small>Máximo 30 caracteres</small>
+                            </div>
+
+                            <!-- Cores do Tema -->
+                            <div class="setting-group">
+                                <label>
+                                    <span class="setting-icon">🎨</span>
+                                    Cores do Tema
+                                </label>
+                                <div class="color-options">
+                                    <div class="color-item">
+                                        <label for="corPrimaria">Cor Primária:</label>
+                                        <input type="color" id="corPrimaria" name="corPrimaria" value="#8b5cf6">
+                                        <span class="color-preview" id="corPrimariaPreview"></span>
+                                    </div>
+                                    <div class="color-item">
+                                        <label for="corSecundaria">Cor Secundária:</label>
+                                        <input type="color" id="corSecundaria" name="corSecundaria" value="#667eea">
+                                        <span class="color-preview" id="corSecundariaPreview"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload de Logo -->
+                            <div class="setting-group">
+                                <label for="logoUpload">
+                                    <span class="setting-icon">🖼️</span>
+                                    Logo/Ícone Personalizado
+                                </label>
+                                <div class="upload-area">
+                                    <input type="file" id="logoUpload" name="logoUpload" 
+                                           accept="image/png,image/jpeg,image/jpg,image/svg+xml">
+                                    <div class="upload-text">
+                                        <span>📁 Clique para selecionar uma imagem</span>
+                                        <small>PNG, JPG ou SVG - Max 1MB</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Temas Predefinidos -->
+                            <div class="setting-group">
+                                <label>
+                                    <span class="setting-icon">🎭</span>
+                                    Temas Predefinidos
+                                </label>
+                                <div class="theme-options">
+                                    <div class="theme-card active" data-theme="padrao">
+                                        <div class="theme-colors">
+                                            <span style="background: #8b5cf6"></span>
+                                            <span style="background: #667eea"></span>
+                                        </div>
+                                        <span>Padrão</span>
+                                    </div>
+                                    <div class="theme-card" data-theme="saude">
+                                        <div class="theme-colors">
+                                            <span style="background: #059669"></span>
+                                            <span style="background: #06b6d4"></span>
+                                        </div>
+                                        <span>Saúde</span>
+                                    </div>
+                                    <div class="theme-card" data-theme="profissional">
+                                        <div class="theme-colors">
+                                            <span style="background: #1e40af"></span>
+                                            <span style="background: #3730a3"></span>
+                                        </div>
+                                        <span>Profissional</span>
+                                    </div>
+                                    <div class="theme-card" data-theme="moderno">
+                                        <div class="theme-colors">
+                                            <span style="background: #ec4899"></span>
+                                            <span style="background: #f59e0b"></span>
+                                        </div>
+                                        <span>Moderno</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botões de Ação -->
+                            <div class="form-actions">
+                                <button type="button" id="resetPersonalizacao" class="btn btn-secondary">
+                                    🔄 Restaurar Padrão
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    💾 Salvar Personalização
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </section>

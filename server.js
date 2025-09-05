@@ -12,7 +12,8 @@ const os = require('os');
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Aumentar limite para permitir upload de imagens
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static('public'));
 app.use(session({
     secret: 'prontuario-medico-secret-key-lorsgordors-2025',
@@ -712,6 +713,77 @@ app.get('/api/tipos-registro', (req, res) => {
     ];
     
     res.json(tipos);
+});
+
+// Rota para obter personalização do usuário
+app.get('/api/personalizacao', requireAuth, async (req, res) => {
+    try {
+        // Se userId é fornecido na query, usar ele (para carregar personalização de outros usuários)
+        // Senão, usar o login do usuário da sessão
+        const userId = req.query.userId || req.session.user.login;
+        
+        const filename = `personalizacao-${userId}.json`;
+        
+        try {
+            // Tentar buscar personalização do GitHub
+            const personalizacao = await fetchJsonFromGithub(filename);
+            res.json(personalizacao);
+        } catch (error) {
+            // Se não encontrar, retornar configuração padrão
+            const personalizacaoPadrao = {
+                corPrimaria: '#8b5cf6',
+                corSecundaria: '#667eea', 
+                nomeSystem: 'Lizard Prontuário',
+                logoUrl: 'logo.png',
+                tema: 'padrao'
+            };
+            res.status(404).json(personalizacaoPadrao);
+        }
+    } catch (error) {
+        console.error('Erro ao obter personalização:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+// Rota para salvar personalização do usuário
+app.post('/api/personalizacao', requireAuth, async (req, res) => {
+    try {
+        const userId = req.session.user.login; // Usar login como identificador
+        const { corPrimaria, corSecundaria, nomeSystem, logoUrl, tema } = req.body;
+        
+        // Validar dados
+        if (!corPrimaria || !corSecundaria || !nomeSystem) {
+            return res.status(400).json({ error: 'Dados obrigatórios não fornecidos' });
+        }
+        
+        const personalizacao = {
+            userId,
+            login: req.session.user.login,
+            nomeUsuario: req.session.user.nomeCompleto,
+            corPrimaria,
+            corSecundaria, 
+            nomeSystem,
+            logoUrl: logoUrl || 'logo.png',
+            tema: tema || 'padrao',
+            atualizadoEm: new Date().toISOString()
+        };
+        
+        const filename = `personalizacao-${userId}.json`;
+        
+        console.log(`Salvando personalização para usuário: ${userId} no arquivo: ${filename}`);
+        
+        // Salvar no GitHub
+        await saveJsonToGithub(filename, personalizacao);
+        
+        // Log da personalização
+        await logAuditoria('personalizacao_alterada', req.session.user.login, 
+            `Personalização alterada - Nome: ${nomeSystem}, Tema: ${tema}`, req);
+        
+        res.json({ success: true, message: 'Personalização salva com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao salvar personalização:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
 });
 
 // Rota para estatísticas do usuário
