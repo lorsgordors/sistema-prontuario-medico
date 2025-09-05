@@ -1023,10 +1023,20 @@ class ProntuarioApp {
             return;
         }
         container.innerHTML = usuarios.map(usuario => `
-            <div class="usuario-item" style="border-bottom:1px solid #e2e8f0;padding:12px 0;">
-                <strong>${usuario.nomeCompleto}</strong> <span style="color:#718096">(${usuario.login})</span><br>
-                <span>Tipo: ${usuario.tipo}</span> | <span>Registro: ${usuario.tipoRegistro} ${usuario.numeroRegistro}</span>
-                <button class="btn btn-secondary" onclick="app.showEditarUsuarioModal(${usuario.id})">Editar</button>
+            <div class="usuario-item">
+                <div class="usuario-header">
+                    <div class="usuario-info">
+                        <h3 class="usuario-nome">${usuario.nomeCompleto}</h3>
+                        <p class="usuario-login">@${usuario.login}</p>
+                        <div class="usuario-meta">
+                            <span class="usuario-tipo ${usuario.tipo.toLowerCase()}">${usuario.tipo}</span>
+                            <span class="usuario-registro">${usuario.tipoRegistro} ${usuario.numeroRegistro}</span>
+                        </div>
+                    </div>
+                    <div class="usuario-actions">
+                        <button class="btn btn-secondary" onclick="app.showEditarUsuarioModal(${usuario.id})">Editar</button>
+                    </div>
+                </div>
             </div>
         `).join('');
     }
