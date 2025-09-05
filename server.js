@@ -688,11 +688,27 @@ app.get('/api/tipos-registro', (req, res) => {
         { valor: 'COREN', nome: 'COREN - Conselho Regional de Enfermagem', temEstado: true },
         { valor: 'CRO', nome: 'CRO - Conselho Regional de Odontologia', temEstado: true },
         { valor: 'CREFITO', nome: 'CREFITO - Conselho Regional de Fisioterapia', temEstado: true },
+        { valor: 'CREF', nome: 'CREF - Conselho Regional de Educação Física', temEstado: true },
         { valor: 'CRF', nome: 'CRF - Conselho Regional de Farmácia', temEstado: true },
         { valor: 'CRP', nome: 'CRP - Conselho Regional de Psicologia', temEstado: true },
         { valor: 'CRBM', nome: 'CRBM - Conselho Regional de Biomedicina', temEstado: true },
         { valor: 'CRN', nome: 'CRN - Conselho Regional de Nutrição', temEstado: true },
-        { valor: 'CBO', nome: 'CBO - Classificação Brasileira de Ocupações', temEstado: false }
+        { valor: 'CREA', nome: 'CREA - Conselho Regional de Engenharia e Agronomia', temEstado: true },
+        { valor: 'CAU', nome: 'CAU - Conselho de Arquitetura e Urbanismo', temEstado: true },
+        { valor: 'CRA', nome: 'CRA - Conselho Regional de Administração', temEstado: true },
+        { valor: 'CRC', nome: 'CRC - Conselho Regional de Contabilidade', temEstado: true },
+        { valor: 'CRECI', nome: 'CRECI - Conselho Regional de Corretores de Imóveis', temEstado: true },
+        { valor: 'OAB', nome: 'OAB - Ordem dos Advogados do Brasil', temEstado: true },
+        { valor: 'CRB', nome: 'CRB - Conselho Regional de Biblioteconomia', temEstado: true },
+        { valor: 'CORE', nome: 'CORE - Conselho Regional de Estatística', temEstado: true },
+        { valor: 'CORECON', nome: 'CORECON - Conselho Regional de Economia', temEstado: true },
+        { valor: 'CRS', nome: 'CRS - Conselho Regional de Serviço Social', temEstado: true },
+        { valor: 'CRFA', nome: 'CRFA - Conselho Regional de Fonoaudiologia', temEstado: true },
+        { valor: 'CRT', nome: 'CRT - Conselho Regional de Técnicos', temEstado: true },
+        { valor: 'CRMV', nome: 'CRMV - Conselho Regional de Medicina Veterinária', temEstado: true },
+        { valor: 'CRQ', nome: 'CRQ - Conselho Regional de Química', temEstado: true },
+        { valor: 'CBO', nome: 'CBO - Classificação Brasileira de Ocupações', temEstado: false },
+        { valor: 'OUTROS', nome: 'Outros - Registro Profissional Específico', temEstado: false }
     ];
     
     res.json(tipos);
