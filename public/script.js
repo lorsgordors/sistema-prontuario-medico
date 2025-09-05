@@ -3151,6 +3151,11 @@ class PersonalizationManager {
             this.updatePreview();
         });
 
+        // Dark mode toggle
+        document.getElementById('modoEscuro')?.addEventListener('change', (e) => {
+            this.toggleDarkMode(e.target.checked);
+        });
+
         // Name input
         document.getElementById('nomeSystema')?.addEventListener('input', (e) => {
             this.updatePreview();
@@ -3181,10 +3186,10 @@ class PersonalizationManager {
 
         const theme = card.dataset.theme;
         const themes = {
-            padrao: { primary: '#8b5cf6', secondary: '#667eea', tertiary: '#06b6d4', text: '#333333' },
-            saude: { primary: '#059669', secondary: '#06b6d4', tertiary: '#0891b2', text: '#1f2937' },
-            profissional: { primary: '#1e40af', secondary: '#3730a3', tertiary: '#1e3a8a', text: '#1e293b' },
-            moderno: { primary: '#ec4899', secondary: '#f59e0b', tertiary: '#e11d48', text: '#374151' }
+            padrao: { primary: '#8b5cf6', secondary: '#667eea', tertiary: '#06b6d4', text: '#333333', dark: false },
+            saude: { primary: '#059669', secondary: '#06b6d4', tertiary: '#0891b2', text: '#1f2937', dark: false },
+            profissional: { primary: '#1e40af', secondary: '#3730a3', tertiary: '#1e3a8a', text: '#e2e8f0', dark: true },
+            moderno: { primary: '#ec4899', secondary: '#f59e0b', tertiary: '#e11d48', text: '#374151', dark: false }
         };
 
         if (themes[theme]) {
@@ -3192,10 +3197,12 @@ class PersonalizationManager {
             document.getElementById('corSecundaria').value = themes[theme].secondary;
             document.getElementById('corTerciaria').value = themes[theme].tertiary;
             document.getElementById('corTexto').value = themes[theme].text;
+            document.getElementById('modoEscuro').checked = themes[theme].dark;
             this.updateColorPreview('primaria', themes[theme].primary);
             this.updateColorPreview('secundaria', themes[theme].secondary);
             this.updateColorPreview('terciaria', themes[theme].tertiary);
             this.updateColorPreview('texto', themes[theme].text);
+            this.toggleDarkMode(themes[theme].dark);
             this.updatePreview();
         }
     }
@@ -3364,6 +3371,9 @@ class PersonalizationManager {
         if (document.getElementById('corTexto')) {
             document.getElementById('corTexto').value = config.corTexto || '#333333';
         }
+        if (document.getElementById('modoEscuro')) {
+            document.getElementById('modoEscuro').checked = config.modoEscuro || false;
+        }
 
         // Update color previews
         this.updateColorPreview('primaria', config.corPrimaria || '#8b5cf6');
@@ -3480,6 +3490,13 @@ class PersonalizationManager {
                 logo.src = 'logo.png';
             });
         }
+
+        // Apply dark mode
+        if (config.modoEscuro) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
         
         // Store personalization in sessionStorage (individual per user session)
         sessionStorage.setItem('currentUserPersonalization', JSON.stringify({
@@ -3508,6 +3525,28 @@ class PersonalizationManager {
         return `rgb(${r}, ${g}, ${b})`;
     }
 
+    toggleDarkMode(enabled) {
+        if (enabled) {
+            document.body.classList.add('dark-mode');
+            // Ajustar cores de texto para modo escuro
+            const textColorInput = document.getElementById('corTexto');
+            if (textColorInput && textColorInput.value === '#333333') {
+                textColorInput.value = '#e2e8f0';
+                this.updateColorPreview('texto', '#e2e8f0');
+            }
+        } else {
+            document.body.classList.remove('dark-mode');
+            // Restaurar cores de texto para modo claro
+            const textColorInput = document.getElementById('corTexto');
+            if (textColorInput && textColorInput.value === '#e2e8f0') {
+                textColorInput.value = '#333333';
+                this.updateColorPreview('texto', '#333333');
+            }
+        }
+        this.updatePreview();
+        console.log('Modo escuro:', enabled ? 'ativado' : 'desativado');
+    }
+
     async savePersonalization() {
         try {
             const config = {
@@ -3515,6 +3554,7 @@ class PersonalizationManager {
                 corSecundaria: document.getElementById('corSecundaria')?.value || '#667eea',
                 corTerciaria: document.getElementById('corTerciaria')?.value || '#06b6d4',
                 corTexto: document.getElementById('corTexto')?.value || '#333333',
+                modoEscuro: document.getElementById('modoEscuro')?.checked || false,
                 nomeSystem: document.getElementById('nomeSystema')?.value || 'Lizard Prontuário',
                 tema: document.querySelector('.theme-card.active')?.dataset.theme || 'padrao'
             };
@@ -3556,6 +3596,7 @@ class PersonalizationManager {
             corSecundaria: '#667eea',
             corTerciaria: '#06b6d4',
             corTexto: '#333333',
+            modoEscuro: false,
             nomeSistema: 'Lizard Prontuário',
             logoUrl: 'logo.png',
             tema: 'padrao'
@@ -3592,6 +3633,9 @@ class PersonalizationManager {
         root.style.removeProperty('--gradient-accent');
         root.style.removeProperty('--gradient-tertiary');
         root.style.removeProperty('--gradient-triple');
+        
+        // Restaurar modo claro (remover modo escuro)
+        document.body.classList.remove('dark-mode');
         
         // Restaurar título padrão
         document.title = 'Lizard Prontuário';

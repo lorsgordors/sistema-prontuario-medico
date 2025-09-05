@@ -735,6 +735,7 @@ app.get('/api/personalizacao', requireAuth, async (req, res) => {
                 corSecundaria: '#667eea',
                 corTerciaria: '#06b6d4',
                 corTexto: '#333333',
+                modoEscuro: false,
                 nomeSystem: 'Lizard Prontuário',
                 logoUrl: 'logo.png',
                 tema: 'padrao'
@@ -766,6 +767,7 @@ app.post('/api/personalizacao', requireAuth, async (req, res) => {
             corSecundaria,
             corTerciaria: corTerciaria || '#06b6d4', // Valor padrão para cor terciária
             corTexto: corTexto || '#333333', // Valor padrão para cor do texto
+            modoEscuro: req.body.modoEscuro || false, // Novo campo para modo escuro
             nomeSystem,
             logoUrl: logoUrl || 'logo.png',
             tema: tema || 'padrao',

@@ -294,18 +294,34 @@ body {
 }
 
 .nav-btn {
-    background: none;
-    border: none;
-    padding: 15px 20px;
+    background: linear-gradient(145deg, 
+        rgba(255, 255, 255, 0.15) 0%,
+        rgba(248, 250, 252, 0.1) 25%,
+        rgba(241, 245, 249, 0.05) 50%,
+        rgba(248, 250, 252, 0.1) 75%,
+        rgba(255, 255, 255, 0.15) 100%);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    padding: 16px 28px;
     color: var(--medium-gray);
-    font-weight: 500;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s;
-    border-bottom: 3px solid transparent;
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-radius: 20px 20px 0 0;
     font-size: 0.95rem;
     white-space: nowrap;
     flex-shrink: 0;
-    margin: 0 8px; /* Espaçamento uniforme no desktop */
+    margin: 0 8px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(20px) saturate(180%) brightness(110%);
+    box-shadow: 
+        0 8px 32px rgba(148, 163, 184, 0.08),
+        0 4px 16px rgba(203, 213, 225, 0.05),
+        0 2px 8px rgba(0, 0, 0, 0.02),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -1px 2px rgba(148, 163, 184, 0.05);
+    transform: perspective(1000px) rotateX(2deg) translateZ(0);
+    transform-style: preserve-3d;
 }
 
 .nav-btn:first-child {
@@ -316,15 +332,317 @@ body {
     margin-right: 0;
 }
 
+/* Efeito de brilho moderno no tema claro */
+.nav-btn::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -200%;
+    width: 200%;
+    height: calc(100% + 4px);
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(99, 102, 241, 0.1) 25%,
+        rgba(255, 255, 255, 0.8) 50%,
+        rgba(139, 92, 246, 0.1) 75%,
+        transparent 100%);
+    transition: left 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 1;
+    transform: skewX(-15deg);
+    border-radius: inherit;
+}
+
+.nav-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 50% 0%, 
+        rgba(99, 102, 241, 0.04) 0%, 
+        rgba(139, 92, 246, 0.02) 40%,
+        transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+    border-radius: inherit;
+}
+
+.nav-btn:hover::before {
+    left: 200%;
+}
+
+.nav-btn:hover::after {
+    opacity: 1;
+}
+
 .nav-btn:hover {
-    color: var(--primary-purple);
-    background: var(--off-white);
+    color: var(--cor-primaria, #6366f1);
+    background: linear-gradient(145deg, 
+        rgba(255, 255, 255, 0.25) 0%,
+        rgba(251, 252, 253, 0.2) 25%,
+        rgba(248, 250, 252, 0.15) 50%,
+        rgba(251, 252, 253, 0.2) 75%,
+        rgba(255, 255, 255, 0.25) 100%);
+    border-color: var(--cor-primaria, rgba(99, 102, 241, 0.4));
+    transform: perspective(1000px) rotateX(-1deg) translateY(-6px) translateZ(20px);
+    box-shadow: 
+        0 20px 60px rgba(99, 102, 241, 0.15),
+        0 12px 30px rgba(139, 92, 246, 0.1),
+        0 6px 15px rgba(0, 0, 0, 0.05),
+        0 2px 8px rgba(99, 102, 241, 0.08),
+        inset 0 3px 6px rgba(255, 255, 255, 0.4),
+        inset 0 -2px 4px rgba(99, 102, 241, 0.03);
+    filter: brightness(108%) saturate(115%) contrast(105%);
+    backdrop-filter: blur(25px) saturate(200%) brightness(115%);
 }
 
 .nav-btn.active {
-    color: var(--primary-purple);
-    border-bottom-color: var(--secondary-purple);
-    background: var(--off-white);
+    color: white;
+    background: linear-gradient(145deg, 
+        var(--cor-primaria, #6366f1) 0%, 
+        var(--cor-secundaria, #8b5cf6) 20%,
+        var(--cor-terciaria, #f59e0b) 40%,
+        var(--cor-secundaria, #8b5cf6) 60%,
+        var(--cor-primaria, #6366f1) 80%,
+        var(--cor-secundaria, #8b5cf6) 100%);
+    border: 2px solid var(--cor-primaria, #6366f1);
+    transform: perspective(1000px) rotateX(-3deg) translateY(-4px) translateZ(25px);
+    box-shadow: 
+        0 25px 80px rgba(99, 102, 241, 0.4),
+        0 15px 40px rgba(139, 92, 246, 0.3),
+        0 8px 20px rgba(245, 158, 11, 0.2),
+        0 4px 10px rgba(0, 0, 0, 0.1),
+        inset 0 4px 8px rgba(255, 255, 255, 0.25),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
+    filter: brightness(110%) saturate(130%) contrast(110%);
+    backdrop-filter: blur(30px) saturate(220%);
+    animation: activeModernPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes activeModernPulse {
+    0% { 
+        filter: brightness(110%) saturate(130%) contrast(110%);
+        box-shadow: 
+            0 25px 80px rgba(99, 102, 241, 0.4),
+            0 15px 40px rgba(139, 92, 246, 0.3),
+            0 8px 20px rgba(245, 158, 11, 0.2);
+    }
+    100% { 
+        filter: brightness(115%) saturate(140%) contrast(115%);
+        box-shadow: 
+            0 30px 100px rgba(99, 102, 241, 0.5),
+            0 20px 50px rgba(139, 92, 246, 0.4),
+            0 12px 30px rgba(245, 158, 11, 0.3);
+    }
+}
+
+/* Efeito de partículas sofisticado no botão ativo (tema claro) */
+.nav-btn.active::before {
+    background: linear-gradient(45deg, 
+        transparent 20%, 
+        rgba(255, 255, 255, 0.6) 35%,
+        rgba(255, 255, 255, 0.9) 50%,
+        rgba(255, 255, 255, 0.6) 65%,
+        transparent 80%);
+    animation: modernSparkle 4s ease-in-out infinite;
+    z-index: 5;
+}
+
+@keyframes modernSparkle {
+    0%, 100% { 
+        left: -200%; 
+        opacity: 0.7;
+        transform: skewX(-15deg) scaleY(0.9); 
+    }
+    50% { 
+        left: 200%; 
+        opacity: 1;
+        transform: skewX(-15deg) scaleY(1.1); 
+    }
+}
+
+/* Indicador ultra-moderno para tema claro */
+.nav-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 12%;
+    right: 12%;
+    height: 6px;
+    background: linear-gradient(90deg, 
+        var(--cor-primaria, #6366f1) 0%,
+        var(--cor-secundaria, #8b5cf6) 20%,
+        var(--cor-terciaria, #f59e0b) 40%,
+        rgba(255, 255, 255, 0.9) 50%,
+        var(--cor-terciaria, #f59e0b) 60%,
+        var(--cor-secundaria, #8b5cf6) 80%,
+        var(--cor-primaria, #6366f1) 100%);
+    border-radius: 3px 3px 0 0;
+    animation: modernActiveGlow 2.5s ease-in-out infinite alternate;
+    box-shadow: 
+        0 0 20px rgba(99, 102, 241, 0.6),
+        0 0 40px rgba(139, 92, 246, 0.4),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 15;
+    opacity: 1;
+}
+
+@keyframes modernActiveGlow {
+    0% { 
+        opacity: 0.9; 
+        transform: scaleX(0.95) scaleY(0.9);
+        box-shadow: 
+            0 0 20px rgba(99, 102, 241, 0.6),
+            0 0 40px rgba(139, 92, 246, 0.4);
+    }
+    100% { 
+        opacity: 1; 
+        transform: scaleX(1.1) scaleY(1.2);
+        box-shadow: 
+            0 0 30px rgba(99, 102, 241, 0.8),
+            0 0 60px rgba(139, 92, 246, 0.6),
+            0 0 90px rgba(245, 158, 11, 0.4);
+    }
+}
+
+/* Navegação aprimorada no modo escuro - ULTRA ESPETACULAR */
+.dark-mode .nav-btn {
+    background: linear-gradient(145deg, 
+        rgba(15, 23, 42, 0.95) 0%,
+        rgba(30, 41, 59, 0.9) 25%,
+        rgba(15, 23, 42, 0.95) 50%,
+        rgba(30, 41, 59, 0.9) 75%,
+        rgba(15, 23, 42, 0.95) 100%) !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+    color: var(--text-color, #cbd5e1) !important;
+    backdrop-filter: blur(16px) saturate(200%) !important;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.3) !important;
+    transform: perspective(1200px) rotateX(8deg) translateZ(0) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Efeito de néon no modo escuro */
+.dark-mode .nav-btn::before {
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(100, 181, 246, 0.4), 
+        rgba(255, 255, 255, 0.6), 
+        rgba(100, 181, 246, 0.4), 
+        transparent) !important;
+    animation: neonSweep 4s ease-in-out infinite;
+}
+
+@keyframes neonSweep {
+    0%, 100% { left: -200%; opacity: 0; }
+    50% { left: 200%; opacity: 1; }
+}
+
+.dark-mode .nav-btn::after {
+    background: radial-gradient(circle at center, 
+        rgba(100, 181, 246, 0.2) 0%, 
+        rgba(66, 165, 245, 0.1) 30%,
+        transparent 70%) !important;
+}
+
+.dark-mode .nav-btn:hover {
+    background: linear-gradient(145deg, 
+        rgba(30, 41, 59, 0.98) 0%,
+        rgba(51, 65, 85, 0.95) 25%,
+        rgba(30, 41, 59, 0.98) 50%,
+        rgba(51, 65, 85, 0.95) 75%,
+        rgba(30, 41, 59, 0.98) 100%) !important;
+    border-color: var(--cor-secundaria, rgba(100, 181, 246, 0.6)) !important;
+    color: var(--cor-secundaria, #64b5f6) !important;
+    transform: perspective(1200px) rotateX(2deg) translateY(-6px) translateZ(25px) !important;
+    box-shadow: 
+        0 16px 64px rgba(100, 181, 246, 0.3),
+        0 8px 32px rgba(66, 165, 245, 0.2),
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 2px 4px rgba(255, 255, 255, 0.15),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+    filter: brightness(1.2) saturate(1.3) drop-shadow(0 0 25px rgba(100, 181, 246, 0.4)) !important;
+}
+
+.dark-mode .nav-btn.active {
+    background: linear-gradient(145deg, 
+        var(--cor-primaria, #42a5f5) 0%, 
+        var(--cor-secundaria, #64b5f6) 25%,
+        var(--cor-terciaria, #ff7043) 50%,
+        var(--cor-secundaria, #64b5f6) 75%,
+        var(--cor-primaria, #42a5f5) 100%) !important;
+    border: 1px solid var(--cor-primaria, #42a5f5) !important;
+    color: white !important;
+    transform: perspective(1200px) rotateX(-3deg) translateY(-5px) translateZ(20px) !important;
+    box-shadow: 
+        0 20px 80px rgba(66, 165, 245, 0.5),
+        0 12px 40px rgba(255, 112, 67, 0.3),
+        0 8px 24px rgba(0, 0, 0, 0.5),
+        inset 0 3px 6px rgba(255, 255, 255, 0.25),
+        inset 0 -3px 6px rgba(0, 0, 0, 0.15) !important;
+    filter: brightness(1.15) saturate(1.4) drop-shadow(0 0 40px rgba(66, 165, 245, 0.7)) !important;
+    animation: activeNeonPulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes activeNeonPulse {
+    0% { 
+        filter: brightness(1.15) saturate(1.4) drop-shadow(0 0 40px rgba(66, 165, 245, 0.7)); 
+        box-shadow: 
+            0 20px 80px rgba(66, 165, 245, 0.5),
+            0 12px 40px rgba(255, 112, 67, 0.3),
+            0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    100% { 
+        filter: brightness(1.3) saturate(1.6) drop-shadow(0 0 60px rgba(66, 165, 245, 0.9)); 
+        box-shadow: 
+            0 25px 100px rgba(66, 165, 245, 0.7),
+            0 15px 50px rgba(255, 112, 67, 0.5),
+            0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+}
+
+/* Indicador animado épico no modo escuro */
+.dark-mode .nav-btn.active::after {
+    background: linear-gradient(90deg, 
+        var(--cor-terciaria, #ff7043) 0%,
+        transparent 10%,
+        var(--cor-primaria, #42a5f5) 25%,
+        var(--cor-secundaria, #64b5f6) 50%,
+        var(--cor-primaria, #42a5f5) 75%,
+        transparent 90%,
+        var(--cor-terciaria, #ff7043) 100%) !important;
+    height: 5px !important;
+    box-shadow: 
+        0 0 20px rgba(66, 165, 245, 0.8),
+        0 0 40px rgba(255, 112, 67, 0.6),
+        0 2px 8px rgba(0, 0, 0, 0.5) !important;
+    animation: epicGlow 2s ease-in-out infinite alternate !important;
+}
+
+@keyframes epicGlow {
+    0% { 
+        opacity: 0.9;
+        transform: scaleX(0.95) scaleY(1);
+        box-shadow: 
+            0 0 20px rgba(66, 165, 245, 0.8),
+            0 0 40px rgba(255, 112, 67, 0.6);
+    }
+    100% { 
+        opacity: 1;
+        transform: scaleX(1.15) scaleY(1.2);
+        box-shadow: 
+            0 0 40px rgba(66, 165, 245, 1),
+            0 0 80px rgba(255, 112, 67, 0.8),
+            0 0 120px rgba(100, 181, 246, 0.6);
+    }
 }
 
 .main-content {
@@ -5123,4 +5441,616 @@ button:focus,
 .nav-header,
 .gradient-bg {
     color: white !important; /* Manter texto branco em fundos com gradiente */
+}
+
+/* ===== TOGGLE SWITCH PARA MODO ESCURO ===== */
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 500;
+}
+
+.toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 24px;
+    background: #ccc;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.toggle-switch::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch {
+    background: var(--primary-purple, #8b5cf6);
+}
+
+.toggle-label input[type="checkbox"]:checked + .toggle-switch::before {
+    transform: translateX(26px);
+}
+
+.toggle-text {
+    font-size: 16px;
+    color: var(--text-color, #333);
+}
+
+/* ===== MODO ESCURO ===== */
+body.dark-mode {
+    background: #1a1a1a !important; /* Fundo principal escuro sólido */
+    color: #e2e8f0 !important;
+}
+
+/* ===== TEMA CLARO - GARANTIR TEXTOS VISÍVEIS ===== */
+/* GARANTIR QUE TODOS OS TEXTOS SEJAM VISÍVEIS NO MODO CLARO */
+body:not(.dark-mode) h1,
+body:not(.dark-mode) h2, 
+body:not(.dark-mode) h3,
+body:not(.dark-mode) h4,
+body:not(.dark-mode) h5,
+body:not(.dark-mode) h6,
+body:not(.dark-mode) p,
+body:not(.dark-mode) span,
+body:not(.dark-mode) label,
+body:not(.dark-mode) a,
+body:not(.dark-mode) li,
+body:not(.dark-mode) td,
+body:not(.dark-mode) th,
+body:not(.dark-mode) div {
+    color: #2d3748 !important; /* Cor escura para boa legibilidade */
+}
+
+/* Links no tema claro */
+body:not(.dark-mode) a {
+    color: var(--cor-primaria, #2b6cb0) !important;
+}
+
+body:not(.dark-mode) a:hover {
+    color: var(--cor-secundaria, #3182ce) !important;
+}
+
+/* Textos em cards no tema claro */
+body:not(.dark-mode) .card,
+body:not(.dark-mode) .stat-card,
+body:not(.dark-mode) .paciente-card,
+body:not(.dark-mode) .user-card,
+body:not(.dark-mode) .patient-card {
+    color: white !important; /* Cards coloridos mantêm texto branco */
+}
+
+/* Inputs e formulários no tema claro */
+body:not(.dark-mode) input,
+body:not(.dark-mode) select,
+body:not(.dark-mode) textarea {
+    color: #2d3748 !important;
+    background: white !important;
+}
+
+body:not(.dark-mode) input::placeholder,
+body:not(.dark-mode) textarea::placeholder {
+    color: #a0aec0 !important;
+}
+
+/* Botões no tema claro */
+body:not(.dark-mode) button,
+body:not(.dark-mode) .btn {
+    color: #2d3748 !important; /* Texto escuro para botões no tema claro */
+    background: rgba(45, 55, 72, 0.1) !important; /* Fundo semi-transparente escuro */
+    border: 1px solid rgba(45, 55, 72, 0.2) !important;
+}
+
+/* Botões coloridos mantêm texto branco no tema claro */
+body:not(.dark-mode) .stat-card button,
+body:not(.dark-mode) .stat-card .btn,
+body:not(.dark-mode) .paciente-card button,
+body:not(.dark-mode) .paciente-card .btn,
+body:not(.dark-mode) .user-card button,
+body:not(.dark-mode) .user-card .btn,
+body:not(.dark-mode) .patient-card button,
+body:not(.dark-mode) .patient-card .btn,
+body:not(.dark-mode) .card button,
+body:not(.dark-mode) .card .btn {
+    color: white !important; /* Exceção: botões dentro de cards coloridos */
+}
+
+/* Botões primários no tema claro */
+body:not(.dark-mode) .btn-primary,
+body:not(.dark-mode) button.btn-primary {
+    background: var(--cor-primaria, #2b6cb0) !important;
+    color: white !important;
+}
+
+/* Botões secundários no tema claro */
+body:not(.dark-mode) .btn-secondary,
+body:not(.dark-mode) button.btn-secondary {
+    background: var(--cor-secundaria, #3182ce) !important;
+    color: white !important;
+}
+
+/* Botões especiais no tema claro */
+body:not(.dark-mode) .btn-success,
+body:not(.dark-mode) button.btn-success {
+    background: #38a169 !important;
+    color: white !important;
+}
+
+body:not(.dark-mode) .btn-danger,
+body:not(.dark-mode) button.btn-danger {
+    background: #e53e3e !important;
+    color: white !important;
+}
+
+body:not(.dark-mode) .btn-warning,
+body:not(.dark-mode) button.btn-warning {
+    background: var(--cor-terciaria, #dd6b20) !important;
+    color: white !important;
+}
+
+body:not(.dark-mode) .btn-info,
+body:not(.dark-mode) button.btn-info {
+    background: #3182ce !important;
+    color: white !important;
+}
+
+/* Botões de link no tema claro */
+body:not(.dark-mode) .btn-link,
+body:not(.dark-mode) button.btn-link {
+    color: var(--cor-primaria, #2b6cb0) !important;
+    background: transparent !important;
+}
+
+/* Efeitos de hover para botões no tema claro */
+body:not(.dark-mode) button:hover,
+body:not(.dark-mode) .btn:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(45, 55, 72, 0.15) !important;
+}
+
+/* Tabelas no tema claro */
+body:not(.dark-mode) table,
+body:not(.dark-mode) thead,
+body:not(.dark-mode) tbody {
+    color: #2d3748 !important;
+}
+
+/* Modals no tema claro */
+body:not(.dark-mode) .modal-content,
+body:not(.dark-mode) .modal-header,
+body:not(.dark-mode) .modal-body,
+body:not(.dark-mode) .modal-footer {
+    color: #2d3748 !important;
+}
+
+/* Navegação e menus no tema claro */
+body:not(.dark-mode) .navbar,
+body:not(.dark-mode) .nav,
+body:not(.dark-mode) .menu {
+    color: #2d3748 !important;
+}
+
+/* Formulários específicos no tema claro */
+body:not(.dark-mode) .form-group label,
+body:not(.dark-mode) .form-control,
+body:not(.dark-mode) .form-select {
+    color: #2d3748 !important;
+}
+
+/* Alertas e notificações no tema claro */
+body:not(.dark-mode) .alert,
+body:not(.dark-mode) .notification {
+    color: #2d3748 !important;
+}
+
+/* Calendário no tema claro */
+body:not(.dark-mode) .calendario-container,
+body:not(.dark-mode) .dia-calendario {
+    color: #2d3748 !important;
+}
+
+/* Aplicar fundo escuro a TODA a página */
+.dark-mode,
+.dark-mode * {
+    background-color: #1a1a1a !important;
+}
+
+/* REGRA UNIVERSAL: TODOS os elementos de texto têm fundo transparente */
+.dark-mode *:not(input):not(select):not(textarea):not(button):not(.btn):not(.card):not(.modal):not(.form-group):not(.color-preview):not(.toggle-switch):not(img):not(.logo-icon) {
+    background: transparent !important;
+}
+
+/* GARANTIR QUE TODOS OS TEXTOS SEJAM VISÍVEIS NO MODO ESCURO */
+.dark-mode h1,
+.dark-mode h2, 
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6,
+.dark-mode p,
+.dark-mode span,
+.dark-mode label,
+.dark-mode a,
+.dark-mode li,
+.dark-mode td,
+.dark-mode th,
+.dark-mode div {
+    color: var(--text-color, #e2e8f0) !important;
+}
+
+/* Exceção: textos em cards coloridos mantêm cor branca */
+.dark-mode .stat-card *,
+.dark-mode .paciente-card *,
+.dark-mode .user-card *,
+.dark-mode .patient-card *,
+.dark-mode .card *,
+.dark-mode button *,
+.dark-mode .btn * {
+    color: white !important;
+}
+
+/* Textos diretos em botões e cards */
+.dark-mode button,
+.dark-mode .btn,
+.dark-mode .card,
+.dark-mode .stat-card,
+.dark-mode .paciente-card,
+.dark-mode .user-card,
+.dark-mode .patient-card {
+    color: white !important;
+}
+
+/* ELEMENTOS INTERATIVOS NO MODO ESCURO */
+/* Botões e Cards com visual consistente no modo escuro */
+.dark-mode button,
+.dark-mode .btn,
+.dark-mode .card,
+.dark-mode .stat-card,
+.dark-mode .paciente-card,
+.dark-mode .user-card,
+.dark-mode .patient-card {
+    background: linear-gradient(135deg, 
+        var(--cor-primaria, #42a5f5) 0%, 
+        var(--cor-secundaria, #64b5f6) 100%) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 15px rgba(66, 165, 245, 0.3) !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Efeitos de hover para botões e cards */
+.dark-mode button:hover,
+.dark-mode .btn:hover,
+.dark-mode .card:hover,
+.dark-mode .stat-card:hover,
+.dark-mode .paciente-card:hover,
+.dark-mode .user-card:hover,
+.dark-mode .patient-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(66, 165, 245, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Botões especiais mantêm suas cores características */
+.dark-mode .btn-danger,
+.dark-mode button.btn-danger {
+    background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%) !important;
+}
+
+.dark-mode .btn-success,
+.dark-mode button.btn-success {
+    background: linear-gradient(135deg, #38a169 0%, #68d391 100%) !important;
+}
+
+.dark-mode .btn-warning,
+.dark-mode button.btn-warning {
+    background: linear-gradient(135deg, var(--cor-terciaria, #ff7043) 0%, #ffab91 100%) !important;
+}
+
+/* Inputs e selects no modo escuro */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-color, #e2e8f0) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Placeholders visíveis */
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+    color: rgba(226, 232, 240, 0.7) !important;
+}
+
+/* Links no modo escuro */
+.dark-mode a {
+    color: var(--cor-secundaria, #64b5f6) !important;
+}
+
+.dark-mode a:hover {
+    color: var(--cor-primaria, #42a5f5) !important;
+}
+
+/* Texto de opções de select */
+.dark-mode option {
+    background: #1a202c !important;
+    color: #e2e8f0 !important;
+}
+
+/* ===== CALENDÁRIO NO MODO ESCURO ===== */
+.dark-mode .calendario-container {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .calendario-header {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-color, #e2e8f0) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.dark-mode .dia-calendario {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-color, #e2e8f0) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark-mode .dia-calendario:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-2px);
+}
+
+.dark-mode .dia-calendario.outro-mes {
+    color: rgba(226, 232, 240, 0.4) !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+}
+
+.dark-mode .dia-calendario.hoje {
+    background: var(--cor-primaria, #42a5f5) !important;
+    border: 2px solid var(--cor-secundaria, #64b5f6) !important;
+    color: white !important;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(66, 165, 245, 0.4) !important;
+}
+
+.dark-mode .dia-calendario.selecionado {
+    background: var(--cor-secundaria, #64b5f6) !important;
+    color: white !important;
+    border: 2px solid var(--cor-primaria, #42a5f5) !important;
+    box-shadow: 0 0 20px rgba(100, 181, 246, 0.6) !important;
+    transform: scale(1.05) !important;
+}
+
+.dark-mode .numero-dia {
+    color: inherit !important;
+}
+
+.dark-mode .indicador-agendamentos {
+    background: var(--cor-terciaria, #ff7043) !important;
+    color: white !important;
+}
+
+/* Elementos que DEVEM manter fundo específico */
+.dark-mode .settings-section,
+.dark-mode .preview-section,
+.dark-mode .form-group,
+.dark-mode .patient-info,
+.dark-mode .user-info,
+.dark-mode .modal-body,
+.dark-mode .card,
+.dark-mode .panel,
+.dark-mode .widget,
+.dark-mode .section,
+.dark-mode .table thead th {
+    background: #2d2d2d !important;
+}
+
+/* Campos de formulário */
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea {
+    background: #404040 !important;
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus,
+.dark-mode .form-group textarea:focus {
+    background: #4a4a4a !important;
+    border-color: var(--primary-purple, #8b5cf6) !important;
+}
+
+/* Botões mantêm suas cores personalizadas */
+.dark-mode .btn-primary,
+.dark-mode .btn-secondary,
+.dark-mode .btn-accent,
+.dark-mode .btn-success,
+.dark-mode .btn-danger,
+.dark-mode .btn-warning {
+    background: var(--primary-purple, #8b5cf6) !important;
+}
+
+/* Logos e imagens não devem ter fundo forçado */
+.dark-mode img,
+.dark-mode .logo-icon,
+.dark-mode .color-preview {
+    background: initial !important;
+}
+
+/* Formulários no modo escuro - configurações específicas */
+.dark-mode .form-group input:focus,
+.dark-mode .form-group select:focus,
+.dark-mode .form-group textarea:focus {
+    background: #4a4a4a !important;
+    border-color: var(--primary-purple, #8b5cf6) !important;
+}
+
+/* Tabelas no modo escuro */
+.dark-mode .table {
+    background: #1a1a1a !important; /* Fundo da tabela igual ao fundo geral */
+    color: #e2e8f0 !important;
+}
+
+.dark-mode .table th,
+.dark-mode .table td {
+    background: #1a1a1a !important;
+    border-color: #404040 !important;
+    color: #e2e8f0 !important;
+}
+
+.dark-mode .table tbody tr:hover {
+    background: #2d2d2d !important;
+}
+
+/* Modais no modo escuro */
+.dark-mode .modal-overlay {
+    background: rgba(0, 0, 0, 0.9) !important;
+}
+
+.dark-mode .modal-content {
+    background: #1a1a1a !important;
+    border: 1px solid #404040 !important;
+}
+
+/* Navegação no modo escuro */
+.dark-mode .nav-item,
+.dark-mode .nav-link {
+    background: #1a1a1a !important;
+    color: #e2e8f0 !important;
+}
+
+.dark-mode .nav-item:hover,
+.dark-mode .nav-link:hover {
+    background: #2d2d2d !important;
+}
+
+/* Textos personalizáveis no modo escuro */
+.dark-mode .personalizable-text,
+.dark-mode .main-content h2,
+.dark-mode .main-content h3,
+.dark-mode .main-content p,
+.dark-mode .modal-content h2,
+.dark-mode .modal-content h3,
+.dark-mode .modal-content p,
+.dark-mode .patient-info h3,
+.dark-mode .patient-info p,
+.dark-mode .patient-card h3,
+.dark-mode .patient-card p,
+.dark-mode .user-card h3,
+.dark-mode .user-card p,
+.dark-mode .form-group label {
+    color: var(--text-color, #e2e8f0) !important;
+    background: transparent !important;
+}
+
+.dark-mode .personalizable-text-light {
+    color: var(--text-light, #94a3b8) !important;
+    background: transparent !important;
+}
+
+.dark-mode .personalizable-text-dark {
+    color: var(--text-dark, #f1f5f9) !important;
+    background: transparent !important;
+}
+
+/* Ajustar cores de texto específicas para modo escuro */
+.dark-mode .toggle-text,
+.dark-mode .form-help-text {
+    color: #94a3b8 !important;
+}
+
+/* Links no modo escuro */
+.dark-mode a {
+    color: var(--primary-purple, #8b5cf6) !important;
+}
+
+.dark-mode a:hover {
+    color: var(--light-purple, #c4b5fd) !important;
+}
+
+/* Scrollbars no modo escuro */
+.dark-mode ::-webkit-scrollbar {
+    background: #1a1a1a;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+    background: #404040;
+    border-radius: 4px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.dark-mode .personalizable-text,
+.dark-mode .main-content h2,
+.dark-mode .main-content h3,
+.dark-mode .main-content p,
+.dark-mode .modal-content h2,
+.dark-mode .modal-content h3,
+.dark-mode .modal-content p,
+.dark-mode .patient-info h3,
+.dark-mode .patient-info p,
+.dark-mode .patient-card h3,
+.dark-mode .patient-card p,
+.dark-mode .user-card h3,
+.dark-mode .user-card p,
+.dark-mode .form-group label {
+    color: var(--text-color, #e2e8f0) !important;
+}
+
+.dark-mode .personalizable-text-light {
+    color: var(--text-light, #94a3b8) !important;
+}
+
+.dark-mode .personalizable-text-dark {
+    color: var(--text-dark, #f1f5f9) !important;
+}
+
+/* Ajustar cores de texto específicas para modo escuro */
+.dark-mode .toggle-text,
+.dark-mode .form-help-text {
+    color: #94a3b8 !important;
+}
+
+/* Manter contraste em botões */
+.dark-mode .btn-primary,
+.dark-mode .btn-secondary,
+.dark-mode .btn-accent {
+    color: white !important;
+}
+
+/* Cards com melhor contraste no modo escuro */
+.dark-mode .settings-section,
+.dark-mode .preview-section {
+    background: #2d2d2d !important;
+    border: 1px solid #404040 !important;
+}
+
+/* Bordas e separadores no modo escuro */
+.dark-mode .form-group,
+.dark-mode .color-options,
+.dark-mode .theme-options {
+    border-color: #404040 !important;
 }
