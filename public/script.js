@@ -3109,6 +3109,8 @@ class PersonalizationManager {
         this.currentTheme = {
             corPrimaria: '#8b5cf6',
             corSecundaria: '#667eea',
+            corTerciaria: '#06b6d4',
+            corTexto: '#333333',
             nomeSystema: 'Lizard Prontuário',
             logoUrl: 'logo.png',
             tema: 'padrao'
@@ -3136,6 +3138,16 @@ class PersonalizationManager {
         
         document.getElementById('corSecundaria')?.addEventListener('input', (e) => {
             this.updateColorPreview('secundaria', e.target.value);
+            this.updatePreview();
+        });
+
+        document.getElementById('corTerciaria')?.addEventListener('input', (e) => {
+            this.updateColorPreview('terciaria', e.target.value);
+            this.updatePreview();
+        });
+
+        document.getElementById('corTexto')?.addEventListener('input', (e) => {
+            this.updateColorPreview('texto', e.target.value);
             this.updatePreview();
         });
 
@@ -3169,17 +3181,21 @@ class PersonalizationManager {
 
         const theme = card.dataset.theme;
         const themes = {
-            padrao: { primary: '#8b5cf6', secondary: '#667eea' },
-            saude: { primary: '#059669', secondary: '#06b6d4' },
-            profissional: { primary: '#1e40af', secondary: '#3730a3' },
-            moderno: { primary: '#ec4899', secondary: '#f59e0b' }
+            padrao: { primary: '#8b5cf6', secondary: '#667eea', tertiary: '#06b6d4', text: '#333333' },
+            saude: { primary: '#059669', secondary: '#06b6d4', tertiary: '#0891b2', text: '#1f2937' },
+            profissional: { primary: '#1e40af', secondary: '#3730a3', tertiary: '#1e3a8a', text: '#1e293b' },
+            moderno: { primary: '#ec4899', secondary: '#f59e0b', tertiary: '#e11d48', text: '#374151' }
         };
 
         if (themes[theme]) {
             document.getElementById('corPrimaria').value = themes[theme].primary;
             document.getElementById('corSecundaria').value = themes[theme].secondary;
+            document.getElementById('corTerciaria').value = themes[theme].tertiary;
+            document.getElementById('corTexto').value = themes[theme].text;
             this.updateColorPreview('primaria', themes[theme].primary);
             this.updateColorPreview('secundaria', themes[theme].secondary);
+            this.updateColorPreview('terciaria', themes[theme].tertiary);
+            this.updateColorPreview('texto', themes[theme].text);
             this.updatePreview();
         }
     }
@@ -3195,6 +3211,8 @@ class PersonalizationManager {
         const nomeSystema = document.getElementById('nomeSystema')?.value || 'Lizard Prontuário';
         const corPrimaria = document.getElementById('corPrimaria')?.value || '#8b5cf6';
         const corSecundaria = document.getElementById('corSecundaria')?.value || '#667eea';
+        const corTerciaria = document.getElementById('corTerciaria')?.value || '#06b6d4';
+        const corTexto = document.getElementById('corTexto')?.value || '#333333';
 
         // Update preview card
         const previewHeader = document.getElementById('previewHeader');
@@ -3202,11 +3220,12 @@ class PersonalizationManager {
         const previewNavBtn = document.querySelector('.preview-nav-btn.active');
 
         if (previewHeader) {
-            previewHeader.style.background = `linear-gradient(135deg, ${corPrimaria} 0%, ${corSecundaria} 100%)`;
+            previewHeader.style.background = `linear-gradient(135deg, ${corPrimaria} 0%, ${corSecundaria} 50%, ${corTerciaria} 100%)`;
         }
         
         if (previewNome) {
             previewNome.textContent = nomeSystema;
+            previewNome.style.color = corTexto;
         }
 
         if (previewNavBtn) {
@@ -3339,10 +3358,18 @@ class PersonalizationManager {
         if (document.getElementById('corSecundaria')) {
             document.getElementById('corSecundaria').value = config.corSecundaria || '#667eea';
         }
+        if (document.getElementById('corTerciaria')) {
+            document.getElementById('corTerciaria').value = config.corTerciaria || '#06b6d4';
+        }
+        if (document.getElementById('corTexto')) {
+            document.getElementById('corTexto').value = config.corTexto || '#333333';
+        }
 
         // Update color previews
         this.updateColorPreview('primaria', config.corPrimaria || '#8b5cf6');
         this.updateColorPreview('secundaria', config.corSecundaria || '#667eea');
+        this.updateColorPreview('terciaria', config.corTerciaria || '#06b6d4');
+        this.updateColorPreview('texto', config.corTexto || '#333333');
 
         // Update logo preview if exists
         if (config.logoUrl && config.logoUrl !== 'logo.png') {
@@ -3361,6 +3388,8 @@ class PersonalizationManager {
         // Get colors
         const primary = config.corPrimaria || '#8b5cf6';
         const secondary = config.corSecundaria || '#667eea';
+        const tertiary = config.corTerciaria || '#06b6d4';
+        const textColor = config.corTexto || '#333333';
         
         // Helper function to generate color variations
         const generateColorVariations = (color) => {
@@ -3380,6 +3409,7 @@ class PersonalizationManager {
         
         const primaryVariations = generateColorVariations(primary);
         const secondaryVariations = generateColorVariations(secondary);
+        const tertiaryVariations = generateColorVariations(tertiary);
         
         // Update CSS variables (only for this user's session)
         const root = document.documentElement;
@@ -3393,10 +3423,23 @@ class PersonalizationManager {
         // Secondary colors
         root.style.setProperty('--secondary-purple', secondary);
         
-        // Gradients
+        // Tertiary colors
+        root.style.setProperty('--tertiary-purple', tertiary);
+        root.style.setProperty('--light-tertiary', tertiaryVariations.light);
+        root.style.setProperty('--dark-tertiary', tertiaryVariations.dark);
+        root.style.setProperty('--accent-tertiary', tertiaryVariations.accent);
+        
+        // Text colors (NEW!)
+        root.style.setProperty('--text-color', textColor);
+        root.style.setProperty('--text-light', this.lightenColor(textColor, 0.3));
+        root.style.setProperty('--text-dark', this.darkenColor(textColor, 0.3));
+        
+        // Gradients with three colors
         root.style.setProperty('--gradient-primary', `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`);
         root.style.setProperty('--gradient-secondary', `linear-gradient(135deg, ${secondary} 0%, ${primary} 100%)`);
         root.style.setProperty('--gradient-accent', `linear-gradient(135deg, ${primaryVariations.accent} 0%, ${secondary} 100%)`);
+        root.style.setProperty('--gradient-tertiary', `linear-gradient(135deg, ${tertiary} 0%, ${primary} 100%)`);
+        root.style.setProperty('--gradient-triple', `linear-gradient(135deg, ${primary} 0%, ${secondary} 50%, ${tertiary} 100%)`);
         
         const nomeSystem = config.nomeSystem || config.nomeSistema || 'Lizard Prontuário';
         
@@ -3448,11 +3491,30 @@ class PersonalizationManager {
         console.log('Personalização completa aplicada individualmente para o usuário:', nomeSystem);
     }
 
+    // Helper functions for color manipulation
+    lightenColor(color, amount) {
+        const hex = color.replace('#', '');
+        const r = Math.min(255, parseInt(hex.substr(0, 2), 16) + Math.floor(255 * amount));
+        const g = Math.min(255, parseInt(hex.substr(2, 2), 16) + Math.floor(255 * amount));
+        const b = Math.min(255, parseInt(hex.substr(4, 2), 16) + Math.floor(255 * amount));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    darkenColor(color, amount) {
+        const hex = color.replace('#', '');
+        const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - Math.floor(255 * amount));
+        const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - Math.floor(255 * amount));
+        const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - Math.floor(255 * amount));
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
     async savePersonalization() {
         try {
             const config = {
                 corPrimaria: document.getElementById('corPrimaria')?.value || '#8b5cf6',
                 corSecundaria: document.getElementById('corSecundaria')?.value || '#667eea',
+                corTerciaria: document.getElementById('corTerciaria')?.value || '#06b6d4',
+                corTexto: document.getElementById('corTexto')?.value || '#333333',
                 nomeSystem: document.getElementById('nomeSystema')?.value || 'Lizard Prontuário',
                 tema: document.querySelector('.theme-card.active')?.dataset.theme || 'padrao'
             };
@@ -3492,6 +3554,8 @@ class PersonalizationManager {
         const defaultConfig = {
             corPrimaria: '#8b5cf6',
             corSecundaria: '#667eea',
+            corTerciaria: '#06b6d4',
+            corTexto: '#333333',
             nomeSistema: 'Lizard Prontuário',
             logoUrl: 'logo.png',
             tema: 'padrao'
@@ -3513,8 +3577,21 @@ class PersonalizationManager {
         const root = document.documentElement;
         root.style.removeProperty('--primary-purple');
         root.style.removeProperty('--secondary-purple');
+        root.style.removeProperty('--tertiary-purple');
+        root.style.removeProperty('--light-purple');
+        root.style.removeProperty('--dark-purple');
+        root.style.removeProperty('--accent-purple');
+        root.style.removeProperty('--light-tertiary');
+        root.style.removeProperty('--dark-tertiary');
+        root.style.removeProperty('--accent-tertiary');
+        root.style.removeProperty('--text-color');
+        root.style.removeProperty('--text-light');
+        root.style.removeProperty('--text-dark');
         root.style.removeProperty('--gradient-primary');
         root.style.removeProperty('--gradient-secondary');
+        root.style.removeProperty('--gradient-accent');
+        root.style.removeProperty('--gradient-tertiary');
+        root.style.removeProperty('--gradient-triple');
         
         // Restaurar título padrão
         document.title = 'Lizard Prontuário';

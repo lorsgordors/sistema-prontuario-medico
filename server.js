@@ -732,7 +732,9 @@ app.get('/api/personalizacao', requireAuth, async (req, res) => {
             // Se não encontrar, retornar configuração padrão
             const personalizacaoPadrao = {
                 corPrimaria: '#8b5cf6',
-                corSecundaria: '#667eea', 
+                corSecundaria: '#667eea',
+                corTerciaria: '#06b6d4',
+                corTexto: '#333333',
                 nomeSystem: 'Lizard Prontuário',
                 logoUrl: 'logo.png',
                 tema: 'padrao'
@@ -749,7 +751,7 @@ app.get('/api/personalizacao', requireAuth, async (req, res) => {
 app.post('/api/personalizacao', requireAuth, async (req, res) => {
     try {
         const userId = req.session.user.login; // Usar login como identificador
-        const { corPrimaria, corSecundaria, nomeSystem, logoUrl, tema } = req.body;
+        const { corPrimaria, corSecundaria, corTerciaria, corTexto, nomeSystem, logoUrl, tema } = req.body;
         
         // Validar dados
         if (!corPrimaria || !corSecundaria || !nomeSystem) {
@@ -761,7 +763,9 @@ app.post('/api/personalizacao', requireAuth, async (req, res) => {
             login: req.session.user.login,
             nomeUsuario: req.session.user.nomeCompleto,
             corPrimaria,
-            corSecundaria, 
+            corSecundaria,
+            corTerciaria: corTerciaria || '#06b6d4', // Valor padrão para cor terciária
+            corTexto: corTexto || '#333333', // Valor padrão para cor do texto
             nomeSystem,
             logoUrl: logoUrl || 'logo.png',
             tema: tema || 'padrao',

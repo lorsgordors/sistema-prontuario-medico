@@ -5069,3 +5069,58 @@ button:focus,
         flex-direction: column;
     }
 }
+
+/* ===== SISTEMA DE PERSONALIZAÇÃO DE CORES DE TEXTO ===== */
+/* Aplicar cor de texto personalizável em elementos principais */
+.personalizable-text,
+.main-content h2,
+.main-content h3,
+.main-content p,
+.modal-content h2,
+.modal-content h3,
+.modal-content p,
+.patient-info h3,
+.patient-info p,
+.patient-card h3,
+.patient-card p,
+.user-card h3,
+.user-card p,
+.form-group label,
+.table th,
+.table td,
+.nav-item,
+.breadcrumb {
+    color: var(--text-color, #333333) !important;
+}
+
+/* Texto mais claro para elementos secundários */
+.personalizable-text-light,
+.patient-info .patient-meta,
+.user-card .user-meta,
+.form-help-text,
+.table caption,
+.modal-footer .text-muted {
+    color: var(--text-light, #666666) !important;
+}
+
+/* Texto mais escuro para elementos importantes */
+.personalizable-text-dark,
+.main-content h1,
+.modal-title,
+.patient-card .patient-name,
+.user-card .user-name,
+.form-title {
+    color: var(--text-dark, #1a1a1a) !important;
+}
+
+/* Garantir contraste em botões e elementos interativos */
+.btn-primary, .btn-secondary, .btn-accent {
+    color: white !important; /* Manter texto branco em botões coloridos */
+}
+
+/* Texto em elementos com fundo colorido */
+.header-content,
+.nav-header,
+.gradient-bg {
+    color: white !important; /* Manter texto branco em fundos com gradiente */
+}
