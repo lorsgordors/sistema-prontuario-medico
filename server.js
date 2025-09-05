@@ -170,23 +170,43 @@ function requireAdmin(req, res, next) {
 app.put('/api/usuarios/:id', requireAdmin, async (req, res) => {
     try {
         const { senhaAdmin, novaSenha, ...dadosEditados } = req.body;
-        const usuarios = await fetchJsonFromGithub('usuarios.json');
-        const admin = usuarios.find(u => u.tipo === 'Administrador');
+        
+        // Buscar dados CRIPTOGRAFADOS originais
+        const usuariosCriptografados = await fetchJsonFromGithub('usuarios.json');
+        
+        // Descriptografar APENAS para validação do admin e encontrar o usuário
+        const usuariosParaValidacao = usuariosCriptografados.map(decryptUserData);
+        const admin = usuariosParaValidacao.find(u => u.tipo === 'Administrador');
         if (!admin || admin.senha !== senhaAdmin) {
             return res.status(401).json({ error: 'Senha do administrador incorreta' });
         }
-        const usuarioIndex = usuarios.findIndex(u => u.id == req.params.id);
+        
+        const usuarioIndex = usuariosParaValidacao.findIndex(u => u.id == req.params.id);
         if (usuarioIndex === -1) {
             return res.status(404).json({ error: 'Usuário não encontrado' });
         }
-        // Atualizar dados permitidos
-        Object.assign(usuarios[usuarioIndex], dadosEditados);
+        
+        // Pegar o usuário original descriptografado para editar
+        const usuarioOriginal = usuariosParaValidacao[usuarioIndex];
+        
+        // Atualizar dados permitidos - campo por campo para garantir precisão
+        if ('nomeCompleto' in dadosEditados) usuarioOriginal.nomeCompleto = dadosEditados.nomeCompleto;
+        if ('login' in dadosEditados) usuarioOriginal.login = dadosEditados.login;
+        if ('tipo' in dadosEditados) usuarioOriginal.tipo = dadosEditados.tipo;
+        if ('tipoRegistro' in dadosEditados) usuarioOriginal.tipoRegistro = dadosEditados.tipoRegistro;
+        if ('numeroRegistro' in dadosEditados) usuarioOriginal.numeroRegistro = dadosEditados.numeroRegistro;
+        if ('estadoRegistro' in dadosEditados) usuarioOriginal.estadoRegistro = dadosEditados.estadoRegistro;
+        
         if (typeof novaSenha === 'string' && novaSenha.trim().length > 0) {
-            usuarios[usuarioIndex].senha = novaSenha;
+            usuarioOriginal.senha = novaSenha;
         }
-        await saveJsonToGithub('usuarios.json', usuarios, 'Editando usuário via API');
-        await logAuditoria('edicao_usuario', req.session.user.login, `Usuário editado: ${usuarios[usuarioIndex].login}`, req);
-        res.json({ success: true, usuario: usuarios[usuarioIndex] });
+        
+        // Criptografar APENAS o usuário editado e substituir na posição correta
+        usuariosCriptografados[usuarioIndex] = encryptUserData(usuarioOriginal);
+        
+        await saveJsonToGithub('usuarios.json', usuariosCriptografados, 'Editando usuário via API');
+        await logAuditoria('edicao_usuario', req.session.user.login, `Usuário editado: ${usuarioOriginal.login}`, req);
+        res.json({ success: true, usuario: usuarioOriginal });
     } catch (error) {
         console.error('Erro ao editar usuário:', error);
         res.status(500).json({ error: 'Erro ao editar usuário' });
@@ -204,6 +224,7 @@ app.get('/api/usuarios', requireAdmin, async (req, res) => {
         res.status(500).json({ error: 'Erro ao listar usuários' });
     }
 });
+
 app.post('/api/login', async (req, res) => {
     try {
         const { login, senha } = req.body;

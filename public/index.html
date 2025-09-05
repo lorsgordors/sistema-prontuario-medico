@@ -151,41 +151,159 @@
                 </div>
                 <!-- Modal de edição de usuário -->
                 <div id="editarUsuarioModal" class="modal hidden">
-                    <div class="modal-content" style="max-width:400px;">
-                        <h3>Editar Usuário</h3>
-                        <form id="editarUsuarioForm">
+                    <div class="modal-content editar-usuario-modal">
+                        <div class="modal-header">
+                            <h3>✏️ Editar Usuário</h3>
+                            <button type="button" class="modal-close" id="cancelarEditarUsuario">&times;</button>
+                        </div>
+                        
+                        <form id="editarUsuarioForm" class="editar-usuario-form">
                             <input type="hidden" id="editarUsuarioId" name="id">
-                            <div class="form-group">
-                                <label for="editarUsuarioNome">Nome Completo:</label>
-                                <input type="text" id="editarUsuarioNome" name="nomeCompleto" required>
+                            
+                            <!-- Informações Básicas -->
+                            <div class="form-section">
+                                <div class="section-title">
+                                    <span class="section-icon">👤</span>
+                                    <h4>Informações Básicas</h4>
+                                </div>
+                                
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="editarUsuarioNome">
+                                            <span class="label-icon">📝</span>
+                                            Nome Completo
+                                        </label>
+                                        <input type="text" id="editarUsuarioNome" name="nomeCompleto" required 
+                                               placeholder="Digite o nome completo">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="editarUsuarioLogin">
+                                            <span class="label-icon">🔑</span>
+                                            Login
+                                        </label>
+                                        <input type="text" id="editarUsuarioLogin" name="login" required 
+                                               placeholder="Digite o nome de usuário">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="editarUsuarioTipo">
+                                        <span class="label-icon">👥</span>
+                                        Tipo de Usuário
+                                    </label>
+                                    <select id="editarUsuarioTipo" name="tipo" required class="select-styled">
+                                        <option value="Administrador">🔧 Administrador</option>
+                                        <option value="Profissional">👨‍⚕️ Profissional da Saúde</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="editarUsuarioLogin">Login:</label>
-                                <input type="text" id="editarUsuarioLogin" name="login" required>
+                            
+                            <!-- Informações Profissionais -->
+                            <div class="form-section" id="editarRegistroProfissionalSection">
+                                <div class="section-title">
+                                    <span class="section-icon">🏥</span>
+                                    <h4>Registro Profissional</h4>
+                                </div>
+                                
+                                <div class="form-group" id="editarTipoRegistroGroup">
+                                    <label for="editarUsuarioTipoRegistro">
+                                        <span class="label-icon">📋</span>
+                                        Tipo de Registro
+                                    </label>
+                                    <select id="editarUsuarioTipoRegistro" name="tipoRegistro" class="select-styled">
+                                        <option value="">Selecione o tipo de registro...</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-grid registro-grid">
+                                    <div class="form-group" id="editarNumeroRegistroGroup">
+                                        <label for="editarUsuarioNumeroRegistro">
+                                            <span class="label-icon">🔢</span>
+                                            Número do Registro
+                                        </label>
+                                        <input type="text" id="editarUsuarioNumeroRegistro" name="numeroRegistro"
+                                               placeholder="Ex: 123456">
+                                    </div>
+                                    
+                                    <div class="form-group" id="editarEstadoRegistroGroup">
+                                        <label for="editarUsuarioEstado">
+                                            <span class="label-icon">📍</span>
+                                            Estado
+                                        </label>
+                                        <select id="editarUsuarioEstado" name="estadoRegistro" class="select-styled">
+                                            <option value="">Selecione...</option>
+                                            <option value="AC">🌳 Acre</option>
+                                            <option value="AL">🏖️ Alagoas</option>
+                                            <option value="AP">🌿 Amapá</option>
+                                            <option value="AM">🌲 Amazonas</option>
+                                            <option value="BA">🏝️ Bahia</option>
+                                            <option value="CE">⛵ Ceará</option>
+                                            <option value="DF">🏛️ Distrito Federal</option>
+                                            <option value="ES">⛰️ Espírito Santo</option>
+                                            <option value="GO">🌾 Goiás</option>
+                                            <option value="MA">🌺 Maranhão</option>
+                                            <option value="MT">🌽 Mato Grosso</option>
+                                            <option value="MS">🐆 Mato Grosso do Sul</option>
+                                            <option value="MG">⛰️ Minas Gerais</option>
+                                            <option value="PA">🌿 Pará</option>
+                                            <option value="PB">🏖️ Paraíba</option>
+                                            <option value="PR">🌲 Paraná</option>
+                                            <option value="PE">🦀 Pernambuco</option>
+                                            <option value="PI">🌵 Piauí</option>
+                                            <option value="RJ">🏖️ Rio de Janeiro</option>
+                                            <option value="RN">🏖️ Rio Grande do Norte</option>
+                                            <option value="RS">🍷 Rio Grande do Sul</option>
+                                            <option value="RO">🌳 Rondônia</option>
+                                            <option value="RR">🌿 Roraima</option>
+                                            <option value="SC">🏝️ Santa Catarina</option>
+                                            <option value="SP">🏢 São Paulo</option>
+                                            <option value="SE">🦐 Sergipe</option>
+                                            <option value="TO">🌅 Tocantins</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="editarUsuarioTipo">Tipo:</label>
-                                <select id="editarUsuarioTipo" name="tipo" required>
-                                    <option value="Administrador">Administrador</option>
-                                    <option value="Profissional">Profissional</option>
-                                </select>
+                            
+                            <!-- Segurança -->
+                            <div class="form-section">
+                                <div class="section-title">
+                                    <span class="section-icon">🔐</span>
+                                    <h4>Segurança</h4>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="editarUsuarioNovaSenha">
+                                        <span class="label-icon">🔑</span>
+                                        Nova Senha
+                                        <span class="label-optional">(opcional)</span>
+                                    </label>
+                                    <input type="password" id="editarUsuarioNovaSenha" name="novaSenha" 
+                                           autocomplete="new-password" placeholder="Deixe vazio para manter a atual">
+                                    <small class="form-help">💡 Preencha apenas se deseja alterar a senha</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="editarUsuarioSenhaAdmin">
+                                        <span class="label-icon">🛡️</span>
+                                        Senha do Administrador
+                                        <span class="required-mark">*</span>
+                                    </label>
+                                    <input type="password" id="editarUsuarioSenhaAdmin" name="senhaAdmin" required
+                                           placeholder="Digite sua senha de administrador">
+                                    <small class="form-help">🔒 Necessária para confirmar alterações</small>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="editarUsuarioNumeroRegistro">Número de Registro:</label>
-                                <input type="text" id="editarUsuarioNumeroRegistro" name="numeroRegistro" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="editarUsuarioNovaSenha">Nova Senha:</label>
-                                <input type="password" id="editarUsuarioNovaSenha" name="novaSenha" autocomplete="new-password">
-                                <small>Preencha apenas se deseja alterar a senha.</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="editarUsuarioSenhaAdmin">Senha do Admin:</label>
-                                <input type="password" id="editarUsuarioSenhaAdmin" name="senhaAdmin" required>
-                            </div>
+                            
                             <div class="modal-actions">
-                                <button type="submit" class="btn btn-primary">Salvar</button>
-                                <button type="button" class="btn btn-secondary" id="cancelarEditarUsuario">Cancelar</button>
+                                <button type="submit" class="btn btn-primary btn-save">
+                                    <span class="btn-icon">💾</span>
+                                    Salvar Alterações
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-cancel" onclick="document.getElementById('editarUsuarioModal').classList.add('hidden')">
+                                    <span class="btn-icon">❌</span>
+                                    Cancelar
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -649,90 +767,165 @@
 
     <!-- Modal Registrar Usuário -->
     <div id="registrarUsuarioModal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content registrar-usuario-modal">
             <div class="modal-header">
-                <h3>👤 Registrar Novo Usuário</h3>
+                <h3>✨ Registrar Novo Usuário</h3>
                 <button type="button" class="modal-close" id="fecharRegistroModal">&times;</button>
             </div>
             
-            <form id="registrarUsuarioForm">
-                <div class="form-group">
-                    <label for="senhaAdmin">Senha do Administrador *</label>
-                    <input type="password" id="senhaAdmin" name="senhaAdmin" required 
-                           placeholder="Digite a senha do administrador">
-                </div>
-                
-                <hr class="form-divider">
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="novoLogin">Nome de Usuário *</label>
-                        <input type="text" id="novoLogin" name="login" required>
+            <form id="registrarUsuarioForm" class="registrar-usuario-form">
+                <!-- Autenticação -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-icon">🛡️</span>
+                        <h4>Autenticação de Administrador</h4>
                     </div>
                     
                     <div class="form-group">
-                        <label for="novoNomeCompleto">Nome Completo *</label>
-                        <input type="text" id="novoNomeCompleto" name="nomeCompleto" required>
+                        <label for="senhaAdmin">
+                            <span class="label-icon">🔐</span>
+                            Senha do Administrador
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="password" id="senhaAdmin" name="senhaAdmin" required 
+                               placeholder="Digite sua senha de administrador">
+                        <small class="form-help">🔒 Necessária para criar novos usuários</small>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="novaSenhaUsuario">Senha *</label>
-                    <input type="password" id="novaSenhaUsuario" name="senha" required>
-                    <div id="forcaSenhaRegistro" class="password-strength"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="tipoRegistroNovo">Tipo de Registro *</label>
-                    <select id="tipoRegistroNovo" name="tipoRegistro" required>
-                        <option value="">Selecione...</option>
-                    </select>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="numeroRegistroNovo">Número do Registro *</label>
-                        <input type="text" id="numeroRegistroNovo" name="numeroRegistro" required>
+                <!-- Informações Básicas -->
+                <div class="form-section">
+                    <div class="section-title">
+                        <span class="section-icon">👤</span>
+                        <h4>Informações Básicas</h4>
                     </div>
                     
-                    <div class="form-group" id="estadoRegistroGroup" style="display: none;">
-                        <label for="estadoRegistroNovo">Estado *</label>
-                        <select id="estadoRegistroNovo" name="estadoRegistro">
-                            <option value="">Selecione...</option>
-                            <option value="AC">Acre</option>
-                            <option value="AL">Alagoas</option>
-                            <option value="AP">Amapá</option>
-                            <option value="AM">Amazonas</option>
-                            <option value="BA">Bahia</option>
-                            <option value="CE">Ceará</option>
-                            <option value="DF">Distrito Federal</option>
-                            <option value="ES">Espírito Santo</option>
-                            <option value="GO">Goiás</option>
-                            <option value="MA">Maranhão</option>
-                            <option value="MT">Mato Grosso</option>
-                            <option value="MS">Mato Grosso do Sul</option>
-                            <option value="MG">Minas Gerais</option>
-                            <option value="PA">Pará</option>
-                            <option value="PB">Paraíba</option>
-                            <option value="PR">Paraná</option>
-                            <option value="PE">Pernambuco</option>
-                            <option value="PI">Piauí</option>
-                            <option value="RJ">Rio de Janeiro</option>
-                            <option value="RN">Rio Grande do Norte</option>
-                            <option value="RS">Rio Grande do Sul</option>
-                            <option value="RO">Rondônia</option>
-                            <option value="RR">Roraima</option>
-                            <option value="SC">Santa Catarina</option>
-                            <option value="SP">São Paulo</option>
-                            <option value="SE">Sergipe</option>
-                            <option value="TO">Tocantins</option>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="novoLogin">
+                                <span class="label-icon">🔑</span>
+                                Nome de Usuário
+                                <span class="required-mark">*</span>
+                            </label>
+                            <input type="text" id="novoLogin" name="login" required
+                                   placeholder="Digite o nome de usuário">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="novoNomeCompleto">
+                                <span class="label-icon">📝</span>
+                                Nome Completo
+                                <span class="required-mark">*</span>
+                            </label>
+                            <input type="text" id="novoNomeCompleto" name="nomeCompleto" required
+                                   placeholder="Digite o nome completo">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="novaSenhaUsuario">
+                            <span class="label-icon">🔒</span>
+                            Senha do Usuário
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="password" id="novaSenhaUsuario" name="senha" required
+                               placeholder="Digite uma senha segura">
+                        <div id="forcaSenhaRegistro" class="password-strength"></div>
+                        <small class="form-help">💡 Use letras, números e símbolos para maior segurança</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tipoUsuarioNovo">
+                            <span class="label-icon">👥</span>
+                            Tipo de Usuário
+                            <span class="required-mark">*</span>
+                        </label>
+                        <select id="tipoUsuarioNovo" name="tipo" required class="select-styled">
+                            <option value="">Selecione o tipo de usuário...</option>
+                            <option value="Profissional">👨‍⚕️ Profissional da Saúde</option>
+                            <option value="Administrador">🔧 Administrador</option>
                         </select>
                     </div>
                 </div>
                 
+                <!-- Registro Profissional -->
+                <div class="form-section" id="registroProfissionalSection">
+                    <div class="section-title">
+                        <span class="section-icon">🏥</span>
+                        <h4>Registro Profissional</h4>
+                    </div>
+                    
+                    <div class="form-group" id="tipoRegistroGroup">
+                        <label for="tipoRegistroNovo">
+                            <span class="label-icon">📋</span>
+                            Tipo de Registro
+                            <span class="required-mark">*</span>
+                        </label>
+                        <select id="tipoRegistroNovo" name="tipoRegistro" class="select-styled">
+                            <option value="">Selecione o tipo de registro...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-grid registro-grid">
+                        <div class="form-group" id="numeroRegistroGroup">
+                            <label for="numeroRegistroNovo">
+                                <span class="label-icon">🔢</span>
+                                Número do Registro
+                                <span class="required-mark">*</span>
+                            </label>
+                            <input type="text" id="numeroRegistroNovo" name="numeroRegistro"
+                                   placeholder="Ex: 123456">
+                        </div>
+                        
+                        <div class="form-group" id="estadoRegistroGroup">
+                            <label for="estadoRegistroNovo">
+                                <span class="label-icon">📍</span>
+                                Estado
+                                <span class="required-mark">*</span>
+                            </label>
+                            <select id="estadoRegistroNovo" name="estadoRegistro" class="select-styled">
+                                <option value="">Selecione...</option>
+                                <option value="AC">🌳 Acre</option>
+                                <option value="AL">🏖️ Alagoas</option>
+                                <option value="AP">🌿 Amapá</option>
+                                <option value="AM">🌲 Amazonas</option>
+                                <option value="BA">🏝️ Bahia</option>
+                                <option value="CE">⛵ Ceará</option>
+                                <option value="DF">🏛️ Distrito Federal</option>
+                                <option value="ES">⛰️ Espírito Santo</option>
+                                <option value="GO">🌾 Goiás</option>
+                                <option value="MA">🌺 Maranhão</option>
+                                <option value="MT">🌽 Mato Grosso</option>
+                                <option value="MS">🐆 Mato Grosso do Sul</option>
+                                <option value="MG">⛰️ Minas Gerais</option>
+                                <option value="PA">🌿 Pará</option>
+                                <option value="PB">🏖️ Paraíba</option>
+                                <option value="PR">🌲 Paraná</option>
+                                <option value="PE">🦀 Pernambuco</option>
+                                <option value="PI">🌵 Piauí</option>
+                                <option value="RJ">🏖️ Rio de Janeiro</option>
+                                <option value="RN">🏖️ Rio Grande do Norte</option>
+                                <option value="RS">🍷 Rio Grande do Sul</option>
+                                <option value="RO">🌳 Rondônia</option>
+                                <option value="RR">🌿 Roraima</option>
+                                <option value="SC">🏝️ Santa Catarina</option>
+                                <option value="SP">🏢 São Paulo</option>
+                                <option value="SE">🦐 Sergipe</option>
+                                <option value="TO">🌅 Tocantins</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary">👤 Registrar Usuário</button>
-                    <button type="button" class="btn btn-secondary" id="cancelarRegistro">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-save">
+                        <span class="btn-icon">✨</span>
+                        Registrar Usuário
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-cancel" id="cancelarRegistro">
+                        <span class="btn-icon">❌</span>
+                        Cancelar
+                    </button>
                 </div>
             </form>
         </div>

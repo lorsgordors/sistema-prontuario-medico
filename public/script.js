@@ -38,14 +38,99 @@ class ProntuarioApp {
                     this.showMessage('Usuário não encontrado', 'error');
                     return;
                 }
+                
+                // Preencher campos básicos
                 document.getElementById('editarUsuarioId').value = usuario.id;
                 document.getElementById('editarUsuarioNome').value = usuario.nomeCompleto;
                 document.getElementById('editarUsuarioLogin').value = usuario.login;
                 document.getElementById('editarUsuarioTipo').value = usuario.tipo;
-                document.getElementById('editarUsuarioNumeroRegistro').value = usuario.numeroRegistro || '';
                 document.getElementById('editarUsuarioNovaSenha').value = '';
+                
+                // Controlar visibilidade dos campos de registro
+                this.toggleEditarUsuarioRegistroFields(usuario.tipo);
+                
+                // Preencher campos de registro se for profissional
+                if (usuario.tipo === 'Profissional') {
+                    // Carregar tipos de registro para o select de edição
+                    this.populateEditarTipoRegistroSelect().then(() => {
+                        document.getElementById('editarUsuarioTipoRegistro').value = usuario.tipoRegistro || '';
+                        document.getElementById('editarUsuarioNumeroRegistro').value = usuario.numeroRegistro || '';
+                        document.getElementById('editarUsuarioEstado').value = usuario.estadoRegistro || '';
+                        
+                        // Mostrar/ocultar campo de estado baseado no tipo de registro
+                        this.toggleEditarEstadoField(usuario.tipoRegistro);
+                    });
+                }
+                
                 document.getElementById('editarUsuarioModal').classList.remove('hidden');
             });
+    }
+    
+    toggleEditarUsuarioRegistroFields(tipoUsuario) {
+        const registroSection = document.getElementById('editarRegistroProfissionalSection');
+        const tipoRegistroGroup = document.getElementById('editarTipoRegistroGroup');
+        const numeroRegistroGroup = document.getElementById('editarNumeroRegistroGroup');
+        const estadoRegistroGroup = document.getElementById('editarEstadoRegistroGroup');
+        
+        const tipoRegistroSelect = document.getElementById('editarUsuarioTipoRegistro');
+        const numeroRegistroInput = document.getElementById('editarUsuarioNumeroRegistro');
+        const estadoRegistroSelect = document.getElementById('editarUsuarioEstado');
+        
+        if (tipoUsuario === 'Profissional') {
+            registroSection.style.display = 'block';
+            tipoRegistroGroup.style.display = 'block';
+            numeroRegistroGroup.style.display = 'block';
+            tipoRegistroSelect.required = true;
+            numeroRegistroInput.required = true;
+        } else {
+            registroSection.style.display = 'none';
+            tipoRegistroGroup.style.display = 'none';
+            numeroRegistroGroup.style.display = 'none';
+            estadoRegistroGroup.style.display = 'none';
+            
+            tipoRegistroSelect.required = false;
+            numeroRegistroInput.required = false;
+            estadoRegistroSelect.required = false;
+            
+            tipoRegistroSelect.value = '';
+            numeroRegistroInput.value = '';
+            estadoRegistroSelect.value = '';
+        }
+    }
+    
+    async populateEditarTipoRegistroSelect() {
+        const select = document.getElementById('editarUsuarioTipoRegistro');
+        if (select && this.tiposRegistro) {
+            select.innerHTML = '<option value="">Selecione...</option>';
+            this.tiposRegistro.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo.valor;
+                option.textContent = tipo.nome;
+                option.dataset.temEstado = tipo.temEstado;
+                select.appendChild(option);
+            });
+        } else if (select) {
+            // Carregar tipos de registro se não estão carregados
+            await this.loadTiposRegistro();
+            this.populateEditarTipoRegistroSelect();
+        }
+    }
+    
+    toggleEditarEstadoField(tipoRegistro) {
+        if (!this.tiposRegistro) return;
+        
+        const tipo = this.tiposRegistro.find(t => t.valor === tipoRegistro);
+        const estadoGroup = document.getElementById('editarEstadoRegistroGroup');
+        const estadoSelect = document.getElementById('editarUsuarioEstado');
+        
+        if (tipo && tipo.temEstado) {
+            estadoGroup.style.display = 'block';
+            estadoSelect.required = true;
+        } else {
+            estadoGroup.style.display = 'none';
+            estadoSelect.required = false;
+            estadoSelect.value = '';
+        }
     }
     
     initEventListeners() {
@@ -55,10 +140,16 @@ class ProntuarioApp {
     
     async loadTiposRegistro() {
         try {
+            console.log('Carregando tipos de registro...');
             const response = await fetch('/api/tipos-registro');
+            console.log('Response status:', response.status);
+            
             if (response.ok) {
                 this.tiposRegistro = await response.json();
+                console.log('Tipos de registro carregados:', this.tiposRegistro);
                 this.populateTipoRegistroSelect();
+            } else {
+                console.error('Erro ao buscar tipos de registro:', response.status);
             }
         } catch (error) {
             console.error('Erro ao carregar tipos de registro:', error);
@@ -67,15 +158,28 @@ class ProntuarioApp {
     
     populateTipoRegistroSelect() {
         const select = document.getElementById('tipoRegistroNovo');
+        console.log('populateTipoRegistroSelect - select:', select);
+        console.log('populateTipoRegistroSelect - tiposRegistro:', this.tiposRegistro);
+        
         if (select) {
             select.innerHTML = '<option value="">Selecione...</option>';
-            this.tiposRegistro.forEach(tipo => {
-                const option = document.createElement('option');
-                option.value = tipo.valor;
-                option.textContent = tipo.nome;
-                option.dataset.temEstado = tipo.temEstado;
-                select.appendChild(option);
-            });
+            
+            if (this.tiposRegistro && this.tiposRegistro.length > 0) {
+                this.tiposRegistro.forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo.valor;
+                    option.textContent = tipo.nome;
+                    option.dataset.temEstado = tipo.temEstado;
+                    select.appendChild(option);
+                });
+                console.log(`Adicionadas ${this.tiposRegistro.length} opções de tipo de registro`);
+            } else {
+                console.log('Nenhum tipo de registro disponível, carregando...');
+                // Se não há tipos carregados, tentar carregar novamente
+                this.loadTiposRegistro().then(() => {
+                    this.populateTipoRegistroSelect();
+                });
+            }
         }
     }
     
@@ -137,6 +241,16 @@ class ProntuarioApp {
         document.getElementById('cancelarEditarUsuario').addEventListener('click', () => {
             document.getElementById('editarUsuarioModal').classList.add('hidden');
         });
+        
+        // Editar usuário - controlar campos de registro baseado no tipo
+        document.getElementById('editarUsuarioTipo').addEventListener('change', (e) => {
+            this.toggleEditarUsuarioRegistroFields(e.target.value);
+        });
+        
+        // Editar usuário - controlar campo de estado baseado no tipo de registro
+        document.getElementById('editarUsuarioTipoRegistro').addEventListener('change', (e) => {
+            this.toggleEditarEstadoField(e.target.value);
+        });
 
         // Editar usuário - submit
         document.getElementById('editarUsuarioForm').addEventListener('submit', async (e) => {
@@ -146,11 +260,26 @@ class ProntuarioApp {
             const nomeCompleto = form.nomeCompleto.value;
             const login = form.login.value;
             const tipo = form.tipo.value;
-            const numeroRegistro = form.numeroRegistro.value;
             const novaSenha = form.novaSenha.value;
             const senhaAdmin = form.senhaAdmin.value;
-            const payload = { nomeCompleto, login, tipo, numeroRegistro, senhaAdmin };
+            
+            // Construir payload básico
+            const payload = { nomeCompleto, login, tipo, senhaAdmin };
+            
+            // Adicionar campos de registro se for profissional
+            if (tipo === 'Profissional') {
+                payload.tipoRegistro = form.tipoRegistro.value;
+                payload.numeroRegistro = form.numeroRegistro.value;
+                payload.estadoRegistro = form.estadoRegistro.value;
+            } else {
+                // Limpar campos de registro para administradores
+                payload.tipoRegistro = '';
+                payload.numeroRegistro = '';
+                payload.estadoRegistro = '';
+            }
+            
             if (novaSenha) payload.novaSenha = novaSenha;
+            
             try {
                 const response = await fetch(`/api/usuarios/${id}`, {
                     method: 'PUT',
@@ -160,7 +289,9 @@ class ProntuarioApp {
                 if (response.ok) {
                     this.showMessage('Usuário editado com sucesso!', 'success');
                     document.getElementById('editarUsuarioModal').classList.add('hidden');
-                    this.loadUsuarios();
+                    
+                    // Recarregar lista de usuários
+                    await this.loadUsuarios();
                 } else {
                     const error = await response.json();
                     this.showMessage(error.error || 'Erro ao editar usuário', 'error');
@@ -367,6 +498,45 @@ class ProntuarioApp {
         
         document.getElementById('novaSenhaUsuario').addEventListener('input', (e) => {
             this.validatePasswordStrength(e.target.value, 'forcaSenhaRegistro');
+        });
+        
+        // Mostrar/ocultar campos de registro baseado no tipo de usuário
+        document.getElementById('tipoUsuarioNovo').addEventListener('change', (e) => {
+            const tipoUsuario = e.target.value;
+            const registroSection = document.getElementById('registroProfissionalSection');
+            const tipoRegistroGroup = document.getElementById('tipoRegistroGroup');
+            const numeroRegistroGroup = document.getElementById('numeroRegistroGroup');
+            const estadoRegistroGroup = document.getElementById('estadoRegistroGroup');
+            
+            const tipoRegistroSelect = document.getElementById('tipoRegistroNovo');
+            const numeroRegistroInput = document.getElementById('numeroRegistroNovo');
+            const estadoRegistroSelect = document.getElementById('estadoRegistroNovo');
+            
+            if (tipoUsuario === 'Profissional') {
+                // Mostrar seção de registro para profissionais
+                registroSection.style.display = 'block';
+                tipoRegistroGroup.style.display = 'block';
+                numeroRegistroGroup.style.display = 'block';
+                tipoRegistroSelect.required = true;
+                numeroRegistroInput.required = true;
+                
+                // Popular as opções de tipo de registro
+                app.populateTipoRegistroSelect();
+            } else {
+                // Ocultar seção de registro para administradores
+                registroSection.style.display = 'none';
+                tipoRegistroGroup.style.display = 'none';
+                numeroRegistroGroup.style.display = 'none';
+                estadoRegistroGroup.style.display = 'none';
+                
+                tipoRegistroSelect.required = false;
+                numeroRegistroInput.required = false;
+                estadoRegistroSelect.required = false;
+                
+                tipoRegistroSelect.value = '';
+                numeroRegistroInput.value = '';
+                estadoRegistroSelect.value = '';
+            }
         });
         
         // Mostrar/ocultar campo de estado baseado no tipo de registro
@@ -840,7 +1010,8 @@ class ProntuarioApp {
             } else {
                 document.getElementById('usuariosList').innerHTML = '<div class="text-center">Erro ao carregar usuários.</div>';
             }
-        } catch {
+        } catch (error) {
+            console.error('Erro ao carregar usuários:', error);
             document.getElementById('usuariosList').innerHTML = '<div class="text-center">Erro de conexão.</div>';
         }
     }
