@@ -5574,15 +5574,30 @@ body:not(.dark-mode) .card .btn {
 /* Botões primários no tema claro */
 body:not(.dark-mode) .btn-primary,
 body:not(.dark-mode) button.btn-primary {
-    background: var(--cor-primaria, #2b6cb0) !important;
+    background: var(--gradient-secondary) !important;
     color: white !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+}
+
+body:not(.dark-mode) .btn-primary:hover,
+body:not(.dark-mode) button.btn-primary:hover {
+    background: var(--gradient-accent) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
 }
 
 /* Botões secundários no tema claro */
 body:not(.dark-mode) .btn-secondary,
 body:not(.dark-mode) button.btn-secondary {
-    background: var(--cor-secundaria, #3182ce) !important;
-    color: white !important;
+    background: var(--primary-white) !important;
+    color: var(--primary-purple) !important;
+    border: 2px solid var(--light-purple) !important;
+}
+
+body:not(.dark-mode) .btn-secondary:hover,
+body:not(.dark-mode) button.btn-secondary:hover {
+    background: var(--light-purple) !important;
+    border-color: var(--secondary-purple) !important;
+    color: var(--primary-white) !important;
 }
 
 /* Botões especiais no tema claro */
@@ -5677,7 +5692,118 @@ body:not(.dark-mode) .dia-calendario {
     background: transparent !important;
 }
 
-/* GARANTIR QUE TODOS OS TEXTOS SEJAM VISÍVEIS NO MODO ESCURO */
+/* REGRA UNIVERSAL FINAL: TODOS OS TEXTOS BRANCOS NO MODO ESCURO */
+.dark-mode *,
+.dark-mode *::before,
+.dark-mode *::after {
+    color: white !important;
+}
+
+/* FORÇA BRUTE: GARANTIR QUE NADA ESCAPE */
+body.dark-mode,
+body.dark-mode *,
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode div,
+body.dark-mode label,
+body.dark-mode a,
+body.dark-mode li,
+body.dark-mode ul,
+body.dark-mode ol,
+body.dark-mode td,
+body.dark-mode th,
+body.dark-mode strong,
+body.dark-mode b,
+body.dark-mode i,
+body.dark-mode em,
+body.dark-mode small,
+body.dark-mode .text-muted,
+body.dark-mode .text-secondary,
+body.dark-mode .text-gray,
+body.dark-mode .content-header,
+body.dark-mode .main-content,
+body.dark-mode .tab-content,
+body.dark-mode .modal-content,
+body.dark-mode .form-group,
+body.dark-mode .table,
+body.dark-mode .nav-item,
+body.dark-mode .breadcrumb {
+    color: white !important;
+}
+
+/* Exceções específicas que precisam de cores diferentes */
+.dark-mode input,
+.dark-mode select, 
+.dark-mode textarea,
+.dark-mode option {
+    color: #1a202c !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+    color: rgba(26, 32, 44, 0.6) !important;
+}
+
+/* ANULAR QUALQUER COR ESPECÍFICA QUE POSSA ESTAR INTERFERINDO */
+.dark-mode .medium-gray,
+.dark-mode .text-gray-500,
+.dark-mode .text-gray-600,
+.dark-mode .text-gray-700,
+.dark-mode .text-slate-500,
+.dark-mode .text-slate-600,
+.dark-mode .text-slate-700,
+body.dark-mode [style*="color"],
+body.dark-mode .paciente-info,
+body.dark-mode .user-info,
+body.dark-mode .creator-badge,
+body.dark-mode .patient-meta,
+body.dark-mode .user-meta {
+    color: white !important;
+}
+
+/* ELEMENTOS ESPECÍFICOS QUE PODEM ESTAR SENDO PROBLEMÁTICOS */
+.dark-mode .nav-btn:not(.active),
+.dark-mode .header-content span,
+.dark-mode .user-info span,
+.dark-mode .content-header h2,
+.dark-mode .paciente-nome,
+.dark-mode .paciente-card .paciente-info,
+.dark-mode .user-card .user-info,
+.dark-mode .modal-header h3,
+.dark-mode .form-help-text,
+.dark-mode .table caption,
+.dark-mode .modal-footer .text-muted {
+    color: white !important;
+}
+
+/* NEUTRALIZAR VARIÁVEIS CSS QUE PODEM ESTAR CAUSANDO PROBLEMAS */
+.dark-mode {
+    --medium-gray: white !important;
+    --text-gray: white !important;
+    --text-color: white !important;
+    --primary-black: white !important;
+    --secondary-gray: white !important;
+}
+
+/* FORÇA MÁXIMA: APLICAR BRANCO A TUDO QUE PODE TER TEXTO */
+.dark-mode [class*="text-"],
+.dark-mode [class*="color-"],
+.dark-mode [class*="gray"],
+.dark-mode [class*="slate"],
+.dark-mode [style*="color: #"],
+.dark-mode [style*="color: rgb"],
+.dark-mode [style*="color: rgba"] {
+    color: white !important;
+}
+
+/* GARANTIR QUE TODOS OS TEXTOS SEJAM BRANCOS NO MODO ESCURO */
 .dark-mode h1,
 .dark-mode h2, 
 .dark-mode h3,
@@ -5691,8 +5817,17 @@ body:not(.dark-mode) .dia-calendario {
 .dark-mode li,
 .dark-mode td,
 .dark-mode th,
-.dark-mode div {
-    color: var(--text-color, #e2e8f0) !important;
+.dark-mode div,
+.dark-mode strong,
+.dark-mode b,
+.dark-mode i,
+.dark-mode em,
+.dark-mode small,
+.dark-mode .text-muted,
+.dark-mode .form-help-text,
+.dark-mode .breadcrumb,
+.dark-mode .nav-item {
+    color: white !important;
 }
 
 /* Exceção: textos em cards coloridos mantêm cor branca */
@@ -5704,6 +5839,44 @@ body:not(.dark-mode) .dia-calendario {
 .dark-mode button *,
 .dark-mode .btn * {
     color: white !important;
+}
+
+/* REGRAS ADICIONAIS PARA GARANTIR TEXTO BRANCO EM TUDO */
+.dark-mode .main-content,
+.dark-mode .main-content *,
+.dark-mode .modal-content,
+.dark-mode .modal-content *,
+.dark-mode .tab-content,
+.dark-mode .tab-content *,
+.dark-mode .form-group,
+.dark-mode .form-group *,
+.dark-mode .table,
+.dark-mode .table *,
+.dark-mode .calendar,
+.dark-mode .calendar *,
+.dark-mode .sidebar,
+.dark-mode .sidebar *,
+.dark-mode .header-content,
+.dark-mode .header-content *,
+.dark-mode .user-info,
+.dark-mode .user-info * {
+    color: white !important;
+}
+
+/* Exceções que devem manter cores específicas */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+    color: var(--text-color, #e2e8f0) !important;
+}
+
+/* Links com cor personalizada */
+.dark-mode a:not(.btn):not(.nav-btn) {
+    color: var(--cor-secundaria, #64b5f6) !important;
+}
+
+.dark-mode a:not(.btn):not(.nav-btn):hover {
+    color: var(--cor-primaria, #42a5f5) !important;
 }
 
 /* Textos diretos em botões e cards */
@@ -5877,14 +6050,22 @@ body:not(.dark-mode) .dia-calendario {
     border-color: var(--primary-purple, #8b5cf6) !important;
 }
 
-/* Botões mantêm suas cores personalizadas */
+/* Botões mantêm suas cores roxas originais */
 .dark-mode .btn-primary,
 .dark-mode .btn-secondary,
 .dark-mode .btn-accent,
 .dark-mode .btn-success,
 .dark-mode .btn-danger,
 .dark-mode .btn-warning {
-    background: var(--primary-purple, #8b5cf6) !important;
+    background: var(--gradient-secondary) !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+}
+
+.dark-mode .btn-primary:hover,
+.dark-mode .btn-secondary:hover,
+.dark-mode .btn-accent:hover {
+    background: var(--gradient-accent) !important;
+    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4) !important;
 }
 
 /* Logos e imagens não devem ter fundo forçado */
@@ -6039,6 +6220,8 @@ body:not(.dark-mode) .dia-calendario {
 .dark-mode .btn-secondary,
 .dark-mode .btn-accent {
     color: white !important;
+    background: var(--gradient-secondary) !important;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
 }
 
 /* Cards com melhor contraste no modo escuro */
